@@ -1,0 +1,8 @@
+[
+{
+  "directory": "/home/eric/github/cursey/build",
+  "command": "/usr/bin/c++   -std=gnu++20 -o CMakeFiles/main.dir/main.cpp.o -c /home/eric/github/cursey/main.cpp",
+  "file": "/home/eric/github/cursey/main.cpp",
+  "output": "CMakeFiles/main.dir/main.cpp.o"
+}
+]

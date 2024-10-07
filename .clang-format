@@ -1,0 +1,11 @@
+BreakBeforeBraces: Attach
+BasedOnStyle: LLVM
+IndentWidth: 4
+AccessModifierOffset: -4
+PointerAlignment: Left
+AlignTrailingComments: true
+AllowShortBlocksOnASingleLine: true
+AllowShortIfStatementsOnASingleLine: false
+AllowShortLoopsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: None
+AlwaysBreakTemplateDeclarations: Yes
