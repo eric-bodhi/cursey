@@ -1,8 +1,11 @@
 #include <cstddef>
+#include <fstream>
+#include <iostream>
 #include <string>
 #include <sys/ioctl.h>
 #include <termios.h>
 #include <unistd.h>
+#include <vector>
 
 struct Position {
     std::size_t row;
@@ -23,24 +26,21 @@ private:
     struct termios origTermios;
 
     void enableRawMode() {
-        tcgetattr(STDIN_FILENO,
-                  &origTermios); // Get the current terminal attributes
+        tcgetattr(STDIN_FILENO, &origTermios); // Get current terminal attributes
         struct termios raw = origTermios;
 
-        // Disable canonical mode and echo
+        // Disable canonical mode, echo, and signal generation
         raw.c_lflag &= ~(ECHO | ICANON | ISIG);
         // Disable Ctrl-S/Ctrl-Q flow control
         raw.c_iflag &= ~(IXON);
         // Disable automatic carriage returns
         raw.c_oflag &= ~(OPOST);
 
-        tcsetattr(STDIN_FILENO, TCSAFLUSH,
-                  &raw); // Apply the new terminal attributes
+        tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw); // Apply new terminal attributes
     }
 
     void disableRawMode() {
-        tcsetattr(STDIN_FILENO, TCSAFLUSH,
-                  &origTermios); // Restore the original attributes
+        tcsetattr(STDIN_FILENO, TCSAFLUSH, &origTermios); // Restore original attributes
     }
 
 public:
@@ -67,25 +67,18 @@ private:
     const std::size_t max_row = boundary.row - 1;
     const std::size_t max_col = boundary.col - 1;
 
+    std::vector<std::string> file_contents;
+    std::size_t view_offset = 0; // Tracks the top line displayed on the screen
+
 public:
-    Cursey(const Position pos = {1, 1}) : cursor(pos) {
-    }
+    Cursey(const Position pos = {1, 1}) : cursor(pos) {}
 
     void clear_screen() {
         write(STDOUT_FILENO, "\x1b[2J", 4); // Clear entire screen
+        write(STDOUT_FILENO, "\x1b[H", 3);  // Move cursor to top-left
     }
 
     void move_cursor(const Position pos) {
-        if (pos.row > max_row)
-            cursor.row = max_row;
-        if (pos.row < 1)
-            cursor.row = 1;
-        if (pos.col > max_col)
-            cursor.col = max_col;
-        if (pos.col < 1)
-            cursor.col = 1;
-
-        // ANSI escape code to move cursor to pos
         std::string seq = "\x1b[" + std::to_string(pos.row) + ";" +
                           std::to_string(pos.col) + "H";
         write(STDOUT_FILENO, seq.c_str(), seq.size());
@@ -96,11 +89,15 @@ public:
         case Direction::Up:
             if (cursor.row > 1)
                 --cursor.row;
+            else if (view_offset > 0)
+                --view_offset; // Scroll up if at the top
             break;
 
         case Direction::Down:
             if (cursor.row < max_row)
                 ++cursor.row;
+            else if (view_offset + max_row < file_contents.size())
+                ++view_offset; // Scroll down if at the bottom
             break;
 
         case Direction::Left:
@@ -114,18 +111,54 @@ public:
             break;
         }
 
-        move_cursor(cursor);
+        refresh_screen();
+    }
+
+    void load_file(const std::string &filename) {
+        std::ifstream file(filename);
+        if (!file) {
+            throw std::runtime_error("Could not open file: " + filename);
+        }
+
+        file_contents.clear();
+        std::string line;
+        while (std::getline(file, line)) {
+            file_contents.push_back(line);
+        }
+    }
+
+    void render_file() {
+        clear_screen();
+
+        for (std::size_t i = 0; i < max_row && i + view_offset < file_contents.size(); ++i) {
+            const std::string &line = file_contents[i + view_offset];
+            write(STDOUT_FILENO, line.c_str(), std::min(line.size(), max_col));
+            write(STDOUT_FILENO, "\r\n", 2); // Move to the next line
+        }
     }
 
     void refresh_screen() {
-        clear_screen();
+        render_file();
         move_cursor(cursor);
+        clear_screen();
     }
 };
 
-int main() {
+int main(int argc, char *argv[]) {
+    if (argc < 2) {
+        std::cerr << "Usage: " << argv[0] << " <filename>\n";
+        return 1;
+    }
+
     TermManager tm; // Automatically manages terminal state
     Cursey cursey;
+
+    try {
+        cursey.load_file(argv[1]); // Load the specified file
+    } catch (const std::exception &e) {
+        std::cerr << e.what() << '\n';
+        return 1;
+    }
 
     char c;
     while (true) {
@@ -146,4 +179,6 @@ int main() {
             cursey.move(Direction::Right);
         }
     }
+
+    return 0;
 }

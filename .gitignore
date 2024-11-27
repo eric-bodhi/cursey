@@ -1,0 +1,63 @@
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Static and Shared Libraries
+*.lib
+*.dll
+*.so
+*.dylib
+*.a
+*.la
+
+# Executable files
+*.exe
+*.out
+*.app
+
+# Debug files
+*.dSYM/
+*.ipdb
+*.pdb
+
+# Build directories
+build/
+bin/
+lib/
+out/
+
+# CMake files
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+
+# IDE specific files (e.g., Visual Studio, Code::Blocks, CLion)
+*.ide/
+*.workspace
+*.project
+*.code-workspace
+*.suo
+*.vcxproj
+*.vcxproj.filters
+*.user
+.idea/
+*.iml
+.vscode/
+
+# Logs and temporary files
+*.log
+*.tmp
+*.swp
+*.swo
+
+# Git specific
+.git/
+*.orig
+
+# Other generated files
+*.bak
+*.stackdump
