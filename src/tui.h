@@ -50,6 +50,7 @@ private:
 
     std::size_t line_length; // current line length
 
+    friend class Editor;
 public:
     // Constructor to initialize Cursey with a file path
     Cursey(const std::string& filepath);
