@@ -1,3 +1,0 @@
-/home/eric/github/cursey/build/CMakeFiles/main.dir
-/home/eric/github/cursey/build/CMakeFiles/edit_cache.dir
-/home/eric/github/cursey/build/CMakeFiles/rebuild_cache.dir
