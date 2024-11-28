@@ -408,7 +408,7 @@ public:
     }
 
     // cannot be string_view because sv locally dangles
-    constexpr std::string to_string() {
+    constexpr std::string to_string() const {
         std::string ret;
         ret.reserve(size()); // reserve size of buffer w/o gap for performance
         ret.append(bufferStart, (gapStart - bufferStart));
