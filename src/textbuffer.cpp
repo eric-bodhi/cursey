@@ -71,3 +71,24 @@ void TextBuffer::insertAt(Position pos, const char s) {
     GapBuffer<char>& gbLine = std::get<GapBuffer<char>>(buffer.at(lineIdx));
     gbLine.insert(gbLine.begin() + (pos.col), s);
 }
+
+void TextBuffer::eraseAt(Position pos) {
+    // Check if the position is within bounds of the current line
+    if (pos.row >= buffer.size()) {
+        return;
+    }
+
+    // Check if the line is a GapBuffer
+    if (std::holds_alternative<GapBuffer<char>>(buffer.at(pos.row))) {
+        GapBuffer<char>& gbLine = std::get<GapBuffer<char>>(buffer.at(pos.row));
+
+        // Ensure the column is within the bounds of the line
+        if (pos.col >= 1 && pos.col < gbLine.size()) {
+            gbLine.erase(gbLine.begin() +
+                         pos.col - 1); // Erase the character at the position
+        }
+        else if (pos.col == 0) {
+            gbLine.erase(gbLine.begin());
+        }
+    }
+}

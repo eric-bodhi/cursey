@@ -46,18 +46,27 @@ void Editor::insertMode(const char input) {
         std::to_string(cursey.cursor.col) + " " +
         std::string(1, input); // Convert input to a string
     logger.log(log_message);
-    if (input == 28) { // ESC key to switch to normal mode
+
+    if (input == 27) { // ESC key to switch to normal mode
         logger.log("Switching to Normal mode. Cursor at: " +
                    std::to_string(cursey.cursor.row) + " " +
                    std::to_string(cursey.cursor.col));
         currMode = Mode::Normal;
         return;
     }
-
-    cursey.buffer.insertAt(cursey.zeroIdxCursor(), input);
-    cursey.render_file();
-
-    cursey.move(Direction::Right); // input char move right one
+    else if (input == 127) { // Delete key (ASCII 127)
+        if (cursey.cursor.col < cursey.buffer.lineCount()) {
+            // Remove the character at the cursor position
+            cursey.buffer.eraseAt(cursey.zeroIdxCursor());
+            cursey.render_file(); // Re-render after the change
+            cursey.move(Direction::Left);
+        }
+    } else {
+        // Insert the character at the cursor position
+        cursey.buffer.insertAt(cursey.zeroIdxCursor(), input);
+        cursey.render_file();
+        cursey.move(Direction::Right); // Move right after insertion
+    }
 }
 
 void Editor::run() {

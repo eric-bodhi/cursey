@@ -28,4 +28,6 @@ public:
     const std::size_t getLineLength(std::size_t index) const;
 
     void insertAt(Position pos, const char s);
+
+    void eraseAt(Position pos);
 };
