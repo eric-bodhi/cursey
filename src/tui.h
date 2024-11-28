@@ -53,7 +53,7 @@ private:
     friend class Editor;
 public:
     // Constructor to initialize Cursey with a file path
-    Cursey(const std::string& filepath);
+    explicit Cursey(const std::string& filepath);
 
     // Clears the terminal screen
     void clear_screen();
@@ -69,4 +69,7 @@ public:
 
     // Refreshes the screen (re-renders the file and moves the cursor)
     void refresh_screen();
+
+    // cursor is 1-idx so must subtract for 0-idx
+    Position zeroIdxCursor();
 };

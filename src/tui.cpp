@@ -118,3 +118,7 @@ void Cursey::refresh_screen() {
     render_file();
     move_cursor(cursor);
 }
+
+Position Cursey::zeroIdxCursor() {
+    return {cursor.row - 1, cursor.col - 1};
+}
