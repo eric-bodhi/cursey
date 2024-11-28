@@ -1,9 +1,9 @@
-#ifndef TUI_H
-#define TUI_H
+#pragma once
 
 #include "textbuffer.h"
 #include <cstddef>
 #include <string>
+#include <termios.h>
 
 // Structure to represent a position on the terminal screen
 struct Position {
@@ -38,15 +38,17 @@ enum class Direction {
 // Handles the rendering and cursor movement for the text editor
 class Cursey {
 private:
-    Position cursor; // Current cursor position
-    TermManager tm;  // Terminal manager for terminal operations
+    Position cursor;   // Current cursor position
+    TermManager tm;    // Terminal manager for terminal operations
     TextBuffer buffer; // Buffer to hold the text content
 
-    const Position boundary; // Terminal size boundaries
+    const Position boundary;   // Terminal size boundaries
     const std::size_t max_row; // Max rows in the terminal
     const std::size_t max_col; // Max columns in the terminal
 
     std::size_t view_offset; // Tracks the top line displayed on the screen
+
+    std::size_t line_length; // current line length
 
 public:
     // Constructor to initialize Cursey with a file path
@@ -67,5 +69,3 @@ public:
     // Refreshes the screen (re-renders the file and moves the cursor)
     void refresh_screen();
 };
-
-#endif // TUI_H

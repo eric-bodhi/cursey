@@ -1,13 +1,11 @@
 #include "tui.h"
-#include <unistd.h>
-#include <sys/ioctl.h>
-#include <termios.h>
-#include <iostream>
-#include <string>
-#include <fstream>
-#include <vector>
 #include <algorithm>
 #include <cstdlib>
+#include <fstream>
+#include <string>
+#include <sys/ioctl.h>
+#include <termios.h>
+#include <unistd.h>
 
 // TermManager constructor to initialize raw mode
 TermManager::TermManager() {
@@ -21,7 +19,7 @@ TermManager::~TermManager() {
 
 // Enables raw mode in the terminal
 void TermManager::enableRawMode() {
-    tcgetattr(STDIN_FILENO, &origTermios);  // Get current terminal attributes
+    tcgetattr(STDIN_FILENO, &origTermios); // Get current terminal attributes
     struct termios raw = origTermios;
 
     // Disable canonical mode, echo, and signal generation
@@ -31,12 +29,13 @@ void TermManager::enableRawMode() {
     // Disable automatic carriage returns
     raw.c_oflag &= ~(OPOST);
 
-    tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw);  // Apply new terminal attributes
+    tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw); // Apply new terminal attributes
 }
 
 // Disables raw mode and restores original terminal settings
 void TermManager::disableRawMode() {
-    tcsetattr(STDIN_FILENO, TCSAFLUSH, &origTermios);  // Restore original attributes
+    tcsetattr(STDIN_FILENO, TCSAFLUSH,
+              &origTermios); // Restore original attributes
 }
 
 // Gets the current terminal size
@@ -47,11 +46,9 @@ Position TermManager::get_terminal_size() {
 }
 
 Cursey::Cursey(const std::string& filepath)
-    : buffer(filepath), cursor({1, 1}), view_offset(0) {
-    // Now, after 'tm' is fully initialized, get the terminal size
-    boundary = tm.get_terminal_size();
-    max_row = boundary.row - 1;
-    max_col = boundary.col - 1;
+    : buffer(filepath), cursor({1, 1}), view_offset(0),
+      boundary(tm.get_terminal_size()), max_row(boundary.row - 1),
+      max_col(boundary.col - 1) {
 }
 
 // Clears the terminal screen
@@ -62,7 +59,8 @@ void Cursey::clear_screen() {
 
 // Moves the cursor to the specified position
 void Cursey::move_cursor(const Position pos) {
-    std::string seq = "\x1b[" + std::to_string(pos.row) + ";" + std::to_string(pos.col) + "H";
+    std::string seq =
+        "\x1b[" + std::to_string(pos.row) + ";" + std::to_string(pos.col) + "H";
     write(STDOUT_FILENO, seq.c_str(), seq.size());
 }
 
@@ -73,14 +71,16 @@ void Cursey::move(Direction direction) {
         if (cursor.row > 1)
             --cursor.row;
         else if (view_offset > 0)
-            --view_offset;  // Scroll up if at the top
+            --view_offset; // Scroll up if at the top
         break;
 
     case Direction::Down:
         if (cursor.row < max_row)
             ++cursor.row;
+
         else if (view_offset + max_row < buffer.lineCount())
-            ++view_offset;  // Scroll down if at the bottom
+            ++view_offset; // Scroll down if at the
+                           // bottom
         break;
 
     case Direction::Left:
@@ -89,11 +89,15 @@ void Cursey::move(Direction direction) {
         break;
 
     case Direction::Right:
-        if (cursor.col < max_col)
-            ++cursor.col;
+        // Prevent moving right if at the end of the line
+        if (cursor.col < line_length) {
+            cursor.col++;
+        }
         break;
     }
 
+    // cursor in terminal is one indexed (1,1) while c++ is 0-indexed
+    line_length = buffer.getLineLength(cursor.row - 1);
     refresh_screen();
 }
 
@@ -101,7 +105,8 @@ void Cursey::move(Direction direction) {
 void Cursey::render_file() {
     clear_screen();
 
-    for (std::size_t i = 0; i < max_row && i + view_offset < buffer.lineCount(); ++i) {
+    for (std::size_t i = 0; i < max_row && i + view_offset < buffer.lineCount();
+         ++i) {
         const std::string& line = buffer.getLine(i + view_offset);
         write(STDOUT_FILENO, line.c_str(), std::min(line.size(), max_col));
         write(STDOUT_FILENO, "\r\n", 2); // Move to the next line
