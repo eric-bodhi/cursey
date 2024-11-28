@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <cstdlib>
 #include <fstream>
+#include <ranges>
 #include <string>
 #include <sys/ioctl.h>
 #include <termios.h>
@@ -66,21 +67,29 @@ void Cursey::move_cursor(const Position pos) {
 
 // Moves the cursor in the specified direction
 void Cursey::move(Direction direction) {
+    bool needs_refresh =
+        false; // flag deciding if full screen refresh is needed
+    line_length = buffer.getLineLength(cursor.row - 1); // Adjust the line length for the current row
     switch (direction) {
     case Direction::Up:
-        if (cursor.row > 1)
+        if (cursor.row > 1) {
             --cursor.row;
-        else if (view_offset > 0)
+        } else if (view_offset > 0) {
             --view_offset; // Scroll up if at the top
+            needs_refresh = true;
+        }
         break;
 
     case Direction::Down:
-        if (cursor.row < max_row)
+        if (cursor.row < max_row) {
             ++cursor.row;
+        }
 
-        else if (view_offset + max_row < buffer.lineCount())
+        else if (view_offset + max_row < buffer.lineCount()) {
             ++view_offset; // Scroll down if at the
                            // bottom
+            needs_refresh = true;
+        }
         break;
 
     case Direction::Left:
@@ -91,17 +100,20 @@ void Cursey::move(Direction direction) {
     case Direction::Right:
         // Prevent moving right if at the end of the line
         if (cursor.col < line_length) {
-            cursor.col++;
+            ++cursor.col;
         }
         break;
     }
 
-    // cursor in terminal is one indexed (1,1) while c++ is 0-indexed
-    line_length = buffer.getLineLength(cursor.row - 1);
-    refresh_screen();
+
+    if (needs_refresh) {
+        render_file();
+    }
+    move_cursor(cursor);
 }
 
 // Renders the content of the file on the screen
+// TODO optimize so only renders changed lines and not whole file
 void Cursey::render_file() {
     clear_screen();
 
@@ -110,12 +122,8 @@ void Cursey::render_file() {
         const std::string& line = buffer.getLine(i + view_offset);
         write(STDOUT_FILENO, line.c_str(), std::min(line.size(), max_col));
         write(STDOUT_FILENO, "\r\n", 2); // Move to the next line
+        fflush(stdout);
     }
-}
-
-// Refreshes the screen (re-renders the file and moves the cursor)
-void Cursey::refresh_screen() {
-    render_file();
     move_cursor(cursor);
 }
 

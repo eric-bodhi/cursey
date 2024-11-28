@@ -61,9 +61,7 @@ public:
     // Renders the content of the file on the screen
     void render_file();
 
-    // Refreshes the screen (re-renders the file and moves the cursor)
-    void refresh_screen();
-
+    void render_line(const std::size_t idx);
     // cursor is 1-idx so must subtract for 0-idx
     Position zeroIdxCursor();
 };
