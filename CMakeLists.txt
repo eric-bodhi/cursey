@@ -9,4 +9,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 add_executable(main
 main.cpp
 src/tui.cpp
-src/textbuffer.cpp)
+src/textbuffer.cpp
+src/editor.cpp
+src/log.cpp)
+

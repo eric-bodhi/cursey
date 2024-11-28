@@ -1,3 +1,6 @@
+#pragma once
+
+#include "log.h"
 #include "tui.h"
 
 class Editor {
@@ -10,6 +13,7 @@ private:
 
     Mode currMode = Mode::Normal;
     Cursey cursey;
+    Logger logger = Logger("../logfile.txt");
 
 public:
     explicit Editor(const std::string& filepath);
@@ -18,7 +22,7 @@ public:
     // normal mode will interpret input char as switching to new mode etc
     void normalMode(const char input);
     void insertMode(const char input);
-    void commandMode(const char input);
+    // void commandMode(const char input);
 
     // main loop
     void run();

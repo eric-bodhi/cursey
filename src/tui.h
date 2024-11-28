@@ -5,12 +5,6 @@
 #include <string>
 #include <termios.h>
 
-// Structure to represent a position on the terminal screen
-struct Position {
-    std::size_t row;
-    std::size_t col;
-};
-
 // Manages the terminal settings (raw mode, terminal size, etc.)
 class TermManager {
 public:

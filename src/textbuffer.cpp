@@ -6,6 +6,9 @@
 
 TextBuffer::TextBuffer(const std::string& filepath) {
     loadFile(filepath);
+    // cursor starts at (1,1) [1 indexed] so first line is gapbuffer
+    lineIdx = 0;
+    buffer.at(lineIdx) = GapBuffer<char>(getLine(lineIdx));
 }
 
 bool TextBuffer::loadFile(const std::string& filepath) {
@@ -44,10 +47,9 @@ const std::size_t TextBuffer::getLineLength(std::size_t index) const {
     return getLine(index).length();
 }
 
-// pos is 0 idx
-// TODO move the orginal line being editted (lineIdx) back to string
 void TextBuffer::insertAt(Position pos, const char s) {
-    // if not editing same line from before, de-gapbuffer original line, and gap buffer new line
+    // if not editing same line from before, de-gapbuffer original line, and gap
+    // buffer new line
     if (lineIdx != pos.row) {
         auto& line_variant = buffer.at(lineIdx);
 
@@ -59,11 +61,13 @@ void TextBuffer::insertAt(Position pos, const char s) {
 
         lineIdx = pos.row; // new line being editted
         if (std::holds_alternative<std::string>(buffer.at(lineIdx))) {
-            auto newgb = GapBuffer<char>(std::get<std::string>(buffer.at(lineIdx)));
-            buffer.at(lineIdx) = newgb; // convert new line being editted into gb
+            auto newgb =
+                GapBuffer<char>(std::get<std::string>(buffer.at(lineIdx)));
+            buffer.at(lineIdx) =
+                newgb; // convert new line being editted into gb
         }
     }
 
     GapBuffer<char>& gbLine = std::get<GapBuffer<char>>(buffer.at(lineIdx));
-    gbLine.insert(gbLine.begin() + (pos.row - 1), s);
+    gbLine.insert(gbLine.begin() + (pos.col), s);
 }

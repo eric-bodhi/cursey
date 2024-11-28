@@ -22,6 +22,7 @@ public:
 
     std::size_t lineCount() const;
 
+    // turns gapbuffer to string if buffer[index] is gb
     const std::string getLine(std::size_t index) const;
 
     const std::size_t getLineLength(std::size_t index) const;

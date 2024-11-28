@@ -1,4 +1,7 @@
+#include "src/editor.h"
+#include "src/log.h"
 #include "src/tui.h"
+#include <iostream>
 
 int main(int argc, char* argv[]) {
     if (argc < 2) {
@@ -6,6 +9,7 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
+    /*
     TermManager tm; // Automatically manages terminal state
     Cursey cursey(argv[1]);
 
@@ -28,6 +32,19 @@ int main(int argc, char* argv[]) {
             cursey.move(Direction::Right);
         }
     }
+    */
+
+    /*
+    TextBuffer tb(argv[1]);
+    tb.insertAt({0, 0}, 'X');
+    tb.insertAt({0, 0}, 'Y');
+    for (std::size_t i = 0; i < tb.lineCount(); i++) {
+        std::cout << tb.getLine(i) << "\n";
+    }
+    */
+
+    Editor editor(argv[1]);
+    editor.run();
 
     return 0;
 }
