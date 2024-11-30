@@ -41,30 +41,27 @@ void Editor::normalMode(const char input) {
 }
 
 void Editor::insertMode(const char input) {
-    std::string log_message =
-        std::to_string(cursey.cursor.row) + " " +
-        std::to_string(cursey.cursor.col) + " " +
-        std::string(1, input); // Convert input to a string
-    logger.log(log_message);
-
     if (input == 27) { // ESC key to switch to normal mode
         logger.log("Switching to Normal mode. Cursor at: " +
                    std::to_string(cursey.cursor.row) + " " +
                    std::to_string(cursey.cursor.col));
         currMode = Mode::Normal;
         return;
-    }
-    else if (input == 127) { // Delete key (ASCII 127)
-        if (cursey.cursor.col < cursey.buffer.lineCount()) {
-            // Remove the character at the cursor position
-            logger.log("Delete " + std::to_string(cursey.cursor.row) + " " + std::to_string(cursey.cursor.col));
+    } else if (input == 127) { // Delete key (ASCII 127)
+        if (cursey.cursor.col <=
+            cursey.buffer.getLineLength(cursey.cursor.row - 1)) {
+            logger.log("Del " + std::to_string(cursey.cursor.row) + " " +
+                       std::to_string(cursey.cursor.col));
             cursey.buffer.eraseAt(cursey.zeroIdxCursor());
             cursey.render_file(); // Re-render after the change
             cursey.move(Direction::Left);
         }
     } else {
         // Insert the character at the cursor position
-        logger.log(cursey.buffer.insertAt(cursey.zeroIdxCursor(), input));
+        std::string log_message = "Ins " + std::to_string(cursey.cursor.row) +
+                                  " " + std::to_string(cursey.cursor.col) +
+                                  " " + std::string(1, input);
+        logger.log(log_message);
         cursey.render_file();
         cursey.move(Direction::Right); // Move right after insertion
     }
@@ -77,7 +74,7 @@ void Editor::run() {
         read(STDIN_FILENO, &c, 1);
         if (currMode == Mode::Normal) {
             if (c == 'q') {
-                for (std::size_t i = 0; i < cursey.buffer.lineCount(); i++ ) {
+                for (std::size_t i = 0; i < cursey.buffer.lineCount(); i++) {
                     logger.log(cursey.buffer.getLine(i));
                 }
                 break;
