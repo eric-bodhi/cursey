@@ -1,0 +1,171 @@
+[2024-11-29 23:24:03] normal mode
+[2024-11-29 23:24:04] 1 1 t
+[2024-11-29 23:24:04] ta 7
+[2024-11-29 23:24:04] 1 2 h
+[2024-11-29 23:24:04] tha 6
+[2024-11-29 23:24:05] 1 3 
+[2024-11-29 23:24:05] Switching to Normal mode. Cursor at: 1 3
+[2024-11-29 23:24:05] normal mode
+[2024-11-29 23:24:05] normal mode
+[2024-11-29 23:24:05] normal mode
+[2024-11-29 23:24:05] normal mode
+[2024-11-29 23:24:06] normal mode
+[2024-11-29 23:24:06] normal mode
+[2024-11-29 23:24:07] 1 3  
+[2024-11-29 23:24:07] th a 5
+[2024-11-29 23:24:08] 1 4 i
+[2024-11-29 23:24:08] th ia 4
+[2024-11-29 23:24:08] 1 5  
+[2024-11-29 23:24:08] th i a 3
+[2024-11-29 23:24:08] 1 6 a
+[2024-11-29 23:24:08] th i aa 2
+[2024-11-29 23:24:08] 1 7 m
+[2024-11-29 23:24:08] th i ama 1
+[2024-11-29 23:24:08] 1 8  
+[2024-11-29 23:24:08] th i am a 9
+[2024-11-29 23:24:08] 1 9 n
+[2024-11-29 23:24:08] th i am na 8
+[2024-11-29 23:24:08] 1 10 o
+[2024-11-29 23:24:08] th i am noa 7
+[2024-11-29 23:24:09] 1 11 t
+[2024-11-29 23:24:09] th i am nota 6
+[2024-11-29 23:24:09] 1 12  
+[2024-11-29 23:24:09] th i am not a 5
+[2024-11-29 23:24:09] 1 13 s
+[2024-11-29 23:24:09] th i am not sa 4
+[2024-11-29 23:24:09] 1 14 u
+[2024-11-29 23:24:09] th i am not sua 3
+[2024-11-29 23:24:09] 1 15 r
+[2024-11-29 23:24:09] th i am not sura 2
+[2024-11-29 23:24:09] 1 16 e
+[2024-11-29 23:24:09] th i am not surea 1
+[2024-11-29 23:24:09] 1 17  
+[2024-11-29 23:24:09] th i am not sure a 18
+[2024-11-29 23:24:10] 1 18 h
+[2024-11-29 23:24:10] th i am not sure ha 17
+[2024-11-29 23:24:10] 1 19 o
+[2024-11-29 23:24:10] th i am not sure hoa 16
+[2024-11-29 23:24:10] 1 20 w
+[2024-11-29 23:24:10] th i am not sure howa 15
+[2024-11-29 23:24:10] 1 21  
+[2024-11-29 23:24:10] th i am not sure how a 14
+[2024-11-29 23:24:10] 1 22 e
+[2024-11-29 23:24:10] th i am not sure how ea 13
+[2024-11-29 23:24:10] 1 23 x
+[2024-11-29 23:24:10] th i am not sure how exa 12
+[2024-11-29 23:24:11] 1 24 a
+[2024-11-29 23:24:11] th i am not sure how exaa 11
+[2024-11-29 23:24:11] 1 25 c
+[2024-11-29 23:24:11] th i am not sure how exaca 10
+[2024-11-29 23:24:11] 1 26 t
+[2024-11-29 23:24:11] th i am not sure how exacta 9
+[2024-11-29 23:24:11] 1 27 l
+[2024-11-29 23:24:11] th i am not sure how exactla 8
+[2024-11-29 23:24:11] 1 28 y
+[2024-11-29 23:24:11] th i am not sure how exactlya 7
+[2024-11-29 23:24:12] 1 29  
+[2024-11-29 23:24:12] th i am not sure how exactly a 6
+[2024-11-29 23:24:12] 1 30 i
+[2024-11-29 23:24:12] th i am not sure how exactly ia 5
+[2024-11-29 23:24:12] 1 31 t
+[2024-11-29 23:24:12] th i am not sure how exactly ita 4
+[2024-11-29 23:24:12] 1 32 s
+[2024-11-29 23:24:12] th i am not sure how exactly itsa 3
+[2024-11-29 23:24:12] 1 33  
+[2024-11-29 23:24:12] th i am not sure how exactly its a 2
+[2024-11-29 23:24:12] 1 34 g
+[2024-11-29 23:24:12] th i am not sure how exactly its ga 1
+[2024-11-29 23:24:13] 1 35 o
+[2024-11-29 23:24:13] th i am not sure how exactly its goa 36
+[2024-11-29 23:24:13] 1 36 i
+[2024-11-29 23:24:13] th i am not sure how exactly its goia 35
+[2024-11-29 23:24:13] 1 37 n
+[2024-11-29 23:24:13] th i am not sure how exactly its goina 34
+[2024-11-29 23:24:13] 1 38 g
+[2024-11-29 23:24:13] th i am not sure how exactly its goinga 33
+[2024-11-29 23:24:13] 1 39  
+[2024-11-29 23:24:13] th i am not sure how exactly its going a 32
+[2024-11-29 23:24:13] 1 40 t
+[2024-11-29 23:24:13] th i am not sure how exactly its going ta 31
+[2024-11-29 23:24:13] 1 41 o
+[2024-11-29 23:24:13] th i am not sure how exactly its going toa 30
+[2024-11-29 23:24:13] 1 42  
+[2024-11-29 23:24:13] th i am not sure how exactly its going to a 29
+[2024-11-29 23:24:13] 1 43 w
+[2024-11-29 23:24:13] th i am not sure how exactly its going to wa 28
+[2024-11-29 23:24:13] 1 44 o
+[2024-11-29 23:24:13] th i am not sure how exactly its going to woa 27
+[2024-11-29 23:24:13] 1 45 r
+[2024-11-29 23:24:13] th i am not sure how exactly its going to wora 26
+[2024-11-29 23:24:13] 1 46 k
+[2024-11-29 23:24:13] th i am not sure how exactly its going to worka 25
+[2024-11-29 23:24:13] 1 47  
+[2024-11-29 23:24:13] th i am not sure how exactly its going to work a 24
+[2024-11-29 23:24:13] 1 48 b
+[2024-11-29 23:24:13] th i am not sure how exactly its going to work ba 23
+[2024-11-29 23:24:13] 1 49 u
+[2024-11-29 23:24:13] th i am not sure how exactly its going to work bua 22
+[2024-11-29 23:24:14] 1 50 t
+[2024-11-29 23:24:14] th i am not sure how exactly its going to work buta 21
+[2024-11-29 23:24:14] 1 51  
+[2024-11-29 23:24:14] th i am not sure how exactly its going to work but a 20
+[2024-11-29 23:24:14] 1 52 i
+[2024-11-29 23:24:14] th i am not sure how exactly its going to work but ia 19
+[2024-11-29 23:24:14] 1 53  
+[2024-11-29 23:24:14] th i am not sure how exactly its going to work but i a 18
+[2024-11-29 23:24:14] 1 54 t
+[2024-11-29 23:24:14] th i am not sure how exactly its going to work but i ta 17
+[2024-11-29 23:24:14] 1 55 h
+[2024-11-29 23:24:14] th i am not sure how exactly its going to work but i tha 16
+[2024-11-29 23:24:14] 1 56 i
+[2024-11-29 23:24:14] th i am not sure how exactly its going to work but i thia 15
+[2024-11-29 23:24:15] 1 57 n
+[2024-11-29 23:24:15] th i am not sure how exactly its going to work but i thina 14
+[2024-11-29 23:24:15] 1 58 k
+[2024-11-29 23:24:15] th i am not sure how exactly its going to work but i thinka 13
+[2024-11-29 23:24:15] 1 59  
+[2024-11-29 23:24:15] th i am not sure how exactly its going to work but i think a 12
+[2024-11-29 23:24:15] 1 60 i
+[2024-11-29 23:24:15] th i am not sure how exactly its going to work but i think ia 11
+[2024-11-29 23:24:15] 1 61 t
+[2024-11-29 23:24:15] th i am not sure how exactly its going to work but i think ita 10
+[2024-11-29 23:24:15] 1 62  
+[2024-11-29 23:24:15] th i am not sure how exactly its going to work but i think it a 9
+[2024-11-29 23:24:15] 1 63 s
+[2024-11-29 23:24:15] th i am not sure how exactly its going to work but i think it sa 8
+[2024-11-29 23:24:15] 1 64 h
+[2024-11-29 23:24:15] th i am not sure how exactly its going to work but i think it sha 7
+[2024-11-29 23:24:15] 1 65 u
+[2024-11-29 23:24:15] th i am not sure how exactly its going to work but i think it shua 6
+[2024-11-29 23:24:15] 1 66 o
+[2024-11-29 23:24:15] th i am not sure how exactly its going to work but i think it shuoa 5
+[2024-11-29 23:24:16] 1 67 l
+[2024-11-29 23:24:16] th i am not sure how exactly its going to work but i think it shuola 4
+[2024-11-29 23:24:16] 1 68 d
+[2024-11-29 23:24:16] th i am not sure how exactly its going to work but i think it shuolda 3
+[2024-11-29 23:24:16] 1 69  
+[2024-11-29 23:24:16] th i am not sure how exactly its going to work but i think it shuold a 2
+[2024-11-29 23:24:16] 1 70 w
+[2024-11-29 23:24:16] th i am not sure how exactly its going to work but i think it shuold wa 1
+[2024-11-29 23:24:16] 1 71 o
+[2024-11-29 23:24:16] th i am not sure how exactly its going to work but i think it shuold woa 72
+[2024-11-29 23:24:16] 1 72 r
+[2024-11-29 23:24:16] th i am not sure how exactly its going to work but i think it shuold wora 71
+[2024-11-29 23:24:16] 1 73 k
+[2024-11-29 23:24:16] th i am not sure how exactly its going to work but i think it shuold worka 70
+[2024-11-29 23:24:16] 1 74  
+[2024-11-29 23:24:16] th i am not sure how exactly its going to work but i think it shuold work a 69
+[2024-11-29 23:24:16] 1 75 b
+[2024-11-29 23:24:16] th i am not sure how exactly its going to work but i think it shuold work ba 68
+[2024-11-29 23:24:16] 1 76 u
+[2024-11-29 23:24:16] th i am not sure how exactly its going to work but i think it shuold work bua 67
+[2024-11-29 23:24:16] 1 77 
+[2024-11-29 23:24:17] 1 77 p
+[2024-11-29 23:24:17] th i am not sure how exactly its going to work but i think it shuold work bupa 66
+[2024-11-29 23:24:17] 1 78 
+[2024-11-29 23:24:17] 1 78 
+[2024-11-29 23:24:18] 1 78 
+[2024-11-29 23:24:18] Switching to Normal mode. Cursor at: 1 78
+[2024-11-29 23:24:18] th i am not sure how exactly its going to work but i think it shuold work bupa
+[2024-11-29 23:24:18] b
+[2024-11-29 23:24:18] c

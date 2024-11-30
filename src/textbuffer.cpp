@@ -1,4 +1,5 @@
 #include "textbuffer.h"
+#include <cmath>
 #include <fstream>
 #include <iostream>
 #include <string>
@@ -47,9 +48,7 @@ const std::size_t TextBuffer::getLineLength(std::size_t index) const {
     return getLine(index).length();
 }
 
-void TextBuffer::insertAt(Position pos, const char s) {
-    // if not editing same line from before, de-gapbuffer original line, and gap
-    // buffer new line
+void TextBuffer::switchLine(Position pos) {
     if (lineIdx != pos.row) {
         auto& line_variant = buffer.at(lineIdx);
 
@@ -59,7 +58,7 @@ void TextBuffer::insertAt(Position pos, const char s) {
             buffer.at(lineIdx) = line_string;
         }
 
-        lineIdx = pos.row; // new line being editted
+        lineIdx = pos.row;
         if (std::holds_alternative<std::string>(buffer.at(lineIdx))) {
             auto newgb =
                 GapBuffer<char>(std::get<std::string>(buffer.at(lineIdx)));
@@ -67,9 +66,16 @@ void TextBuffer::insertAt(Position pos, const char s) {
                 newgb; // convert new line being editted into gb
         }
     }
+}
 
+std::string TextBuffer::insertAt(Position pos, const char s) {
+    // if not editing same line from before, de-gapbuffer original line,
+    // and gap buffer new line
+    switchLine(pos);
     GapBuffer<char>& gbLine = std::get<GapBuffer<char>>(buffer.at(lineIdx));
     gbLine.insert(gbLine.begin() + (pos.col), s);
+
+    return gbLine.to_string() + " " + std::to_string(gbLine.gapSize());
 }
 
 void TextBuffer::eraseAt(Position pos) {
@@ -78,17 +84,14 @@ void TextBuffer::eraseAt(Position pos) {
         return;
     }
 
-    // Check if the line is a GapBuffer
-    if (std::holds_alternative<GapBuffer<char>>(buffer.at(pos.row))) {
-        GapBuffer<char>& gbLine = std::get<GapBuffer<char>>(buffer.at(pos.row));
+    switchLine(pos);
+    GapBuffer<char>& gbLine = std::get<GapBuffer<char>>(buffer.at(pos.row));
 
-        // Ensure the column is within the bounds of the line
-        if (pos.col >= 1 && pos.col < gbLine.size()) {
-            gbLine.erase(gbLine.begin() +
-                         pos.col - 1); // Erase the character at the position
-        }
-        else if (pos.col == 0) {
-            gbLine.erase(gbLine.begin());
-        }
+    // Ensure the column is within the bounds of the line
+    if (pos.col >= 1 && pos.col < gbLine.size()) {
+        gbLine.erase(gbLine.begin() + pos.col -
+                     1); // Erase the character at the position
+    } else if (pos.col == 0) {
+        gbLine.erase(gbLine.begin());
     }
 }

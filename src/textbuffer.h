@@ -1,6 +1,7 @@
 #pragma once
 
 #include "gapbuffer.h"
+#include "log.h"
 #include <string>
 #include <variant>
 #include <vector>
@@ -14,6 +15,7 @@ class TextBuffer {
 private:
     std::vector<std::variant<std::string, GapBuffer<char>>> buffer;
     std::size_t lineIdx;
+    Logger tblogger = Logger("../logfile.txt");
 
 public:
     TextBuffer(const std::string& filepath);
@@ -27,7 +29,9 @@ public:
 
     const std::size_t getLineLength(std::size_t index) const;
 
-    void insertAt(Position pos, const char s);
+    void switchLine(Position pos);
+
+    std::string insertAt(Position pos, const char s);
 
     void eraseAt(Position pos);
 };

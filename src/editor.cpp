@@ -57,13 +57,14 @@ void Editor::insertMode(const char input) {
     else if (input == 127) { // Delete key (ASCII 127)
         if (cursey.cursor.col < cursey.buffer.lineCount()) {
             // Remove the character at the cursor position
+            logger.log("Delete " + std::to_string(cursey.cursor.row) + " " + std::to_string(cursey.cursor.col));
             cursey.buffer.eraseAt(cursey.zeroIdxCursor());
             cursey.render_file(); // Re-render after the change
             cursey.move(Direction::Left);
         }
     } else {
         // Insert the character at the cursor position
-        cursey.buffer.insertAt(cursey.zeroIdxCursor(), input);
+        logger.log(cursey.buffer.insertAt(cursey.zeroIdxCursor(), input));
         cursey.render_file();
         cursey.move(Direction::Right); // Move right after insertion
     }
@@ -76,6 +77,9 @@ void Editor::run() {
         read(STDIN_FILENO, &c, 1);
         if (currMode == Mode::Normal) {
             if (c == 'q') {
+                for (std::size_t i = 0; i < cursey.buffer.lineCount(); i++ ) {
+                    logger.log(cursey.buffer.getLine(i));
+                }
                 break;
             }
             normalMode(c);
