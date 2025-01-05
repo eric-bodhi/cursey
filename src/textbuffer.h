@@ -1,6 +1,6 @@
 #pragma once
 
-#include "gapbuffer.h"
+#include "deque_gb.h"
 #include "log.h"
 #include <string>
 #include <variant>
@@ -13,7 +13,7 @@ struct Position {
 
 class TextBuffer {
 private:
-    std::vector<std::variant<std::string, GapBuffer<char>>> buffer;
+    std::vector<std::variant<std::string, Gb>> buffer;
     std::size_t lineIdx;
     Logger tblogger = Logger("../logfile.txt");
 
@@ -29,9 +29,9 @@ public:
 
     const std::size_t getLineLength(std::size_t index) const;
 
-    void switchLine(Position pos);
+    void switchLine(std::size_t newLineIdx);
 
-    std::string insertAt(Position pos, const char s);
+    void insertAt(Position pos, const char c);
 
     void eraseAt(Position pos);
 };

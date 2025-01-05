@@ -18,6 +18,7 @@ add_executable(main
   src/textbuffer.cpp
   src/editor.cpp
   src/log.cpp
+  externals/gap-buffer/src/deque_gb.cpp
 )
 
 # Clone gap-buffer repository manually into externals/gap-buffer

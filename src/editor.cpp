@@ -58,10 +58,12 @@ void Editor::insertMode(const char input) {
         }
     } else {
         // Insert the character at the cursor position
-        std::string log_message = "Ins " + std::to_string(cursey.cursor.row) +
-                                  " " + std::to_string(cursey.cursor.col) +
-                                  " " + std::string(1, input);
+        std::string log_message =
+            "Ins " + std::to_string(cursey.cursor.row) + " " +
+            std::to_string(cursey.cursor.col) + " " + std::string(1, input);
+
         logger.log(log_message);
+        cursey.buffer.insertAt(cursey.zeroIdxCursor(), input);
         cursey.render_file();
         cursey.move(Direction::Right); // Move right after insertion
     }

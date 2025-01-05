@@ -99,7 +99,7 @@ void Cursey::move(Direction direction) {
 
     case Direction::Right:
         // Prevent moving right if at the end of the line
-        if (cursor.col < line_length) {
+        if (cursor.col <= line_length) {
             ++cursor.col;
         }
         break;

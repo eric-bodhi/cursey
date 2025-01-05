@@ -1,4 +1,5 @@
 #include "textbuffer.h"
+#include "deque_gb.h"
 #include <cmath>
 #include <fstream>
 #include <iostream>
@@ -9,7 +10,7 @@ TextBuffer::TextBuffer(const std::string& filepath) {
     loadFile(filepath);
     // cursor starts at (1,1) [1 indexed] so first line is gapbuffer
     lineIdx = 0;
-    buffer.at(lineIdx) = GapBuffer<char>(getLine(lineIdx));
+    buffer.at(lineIdx) = Gb(getLine(lineIdx));
 }
 
 bool TextBuffer::loadFile(const std::string& filepath) {
@@ -37,8 +38,8 @@ std::size_t TextBuffer::lineCount() const {
 
 const std::string TextBuffer::getLine(std::size_t index) const {
     auto& line = buffer.at(index);
-    if (std::holds_alternative<GapBuffer<char>>(line)) {
-        return std::get<GapBuffer<char>>(line).to_string();
+    if (std::holds_alternative<Gb>(line)) {
+        return std::get<Gb>(line).to_string();
     }
 
     return std::get<std::string>(line);
@@ -48,34 +49,34 @@ const std::size_t TextBuffer::getLineLength(std::size_t index) const {
     return getLine(index).length();
 }
 
-void TextBuffer::switchLine(Position pos) {
-    if (lineIdx != pos.row) {
-        auto& line_variant = buffer.at(lineIdx);
-
-        if (std::holds_alternative<GapBuffer<char>>(line_variant)) {
-            GapBuffer<char>& gbLine = std::get<GapBuffer<char>>(line_variant);
-            std::string line_string = gbLine.to_string();
-            buffer.at(lineIdx) = line_string;
+void TextBuffer::switchLine(std::size_t newLineIdx) {
+    if (lineIdx != newLineIdx) {
+        // Convert current line to string
+        if (std::holds_alternative<Gb>(buffer.at(lineIdx))) {
+            Gb& gbLine = std::get<Gb>(buffer.at(lineIdx));
+            buffer.at(lineIdx) = gbLine.to_string();
         }
 
-        lineIdx = pos.row;
+        // Update current line index
+        lineIdx = newLineIdx;
+
+        // Convert new line to GapBuffer if it's a string
         if (std::holds_alternative<std::string>(buffer.at(lineIdx))) {
-            auto newgb =
-                GapBuffer<char>(std::get<std::string>(buffer.at(lineIdx)));
-            buffer.at(lineIdx) =
-                newgb; // convert new line being editted into gb
+            std::string lineString = std::get<std::string>(buffer.at(lineIdx));
+            buffer.at(lineIdx) = Gb(lineString);
         }
     }
 }
 
-std::string TextBuffer::insertAt(Position pos, const char s) {
+void TextBuffer::insertAt(Position pos, const char c) {
     // if not editing same line from before, de-gapbuffer original line,
     // and gap buffer new line
-    switchLine(pos);
-    GapBuffer<char>& gbLine = std::get<GapBuffer<char>>(buffer.at(lineIdx));
-    gbLine.insert(gbLine.begin() + (pos.col), s);
-
-    return gbLine.to_string() + " " + std::to_string(gbLine.gapSize());
+    switchLine(pos.row);
+    if (std::holds_alternative<Gb>(buffer.at(lineIdx))) {
+        Gb& gbLine = std::get<Gb>(buffer.at(lineIdx));
+        gbLine.move_cursor(pos.col);
+        gbLine.insert(c);
+    }
 }
 
 void TextBuffer::eraseAt(Position pos) {
@@ -84,14 +85,15 @@ void TextBuffer::eraseAt(Position pos) {
         return;
     }
 
-    switchLine(pos);
-    GapBuffer<char>& gbLine = std::get<GapBuffer<char>>(buffer.at(pos.row));
+    switchLine(pos.row);
+    Gb& gbLine = std::get<Gb>(buffer.at(pos.row));
 
     // Ensure the column is within the bounds of the line
     if (pos.col >= 1 && pos.col < gbLine.size()) {
-        gbLine.erase(gbLine.begin() + pos.col -
-                     1); // Erase the character at the position
+        gbLine.move_cursor(pos.col);
+        gbLine.del();
     } else if (pos.col == 0) {
-        gbLine.erase(gbLine.begin());
+        gbLine.move_cursor(0);
+        gbLine.del();
     }
 }
