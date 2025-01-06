@@ -33,6 +33,7 @@ enum class Direction {
 class Cursey {
 private:
     Position cursor;   // Current cursor position
+    size_t original_cursor_col; // Retaining cursor memory
     TermManager tm;    // Terminal manager for terminal operations
     TextBuffer buffer; // Buffer to hold the text content
 

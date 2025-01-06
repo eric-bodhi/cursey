@@ -9,12 +9,16 @@
 struct Position {
     std::size_t row;
     std::size_t col;
+
+    bool operator==(Position& other) {
+        return (row == other.row && col == other.col);
+    }
 };
 
 class TextBuffer {
 private:
     std::vector<std::variant<std::string, Gb>> buffer;
-    std::size_t lineIdx;
+    Position cursor;
     Logger tblogger = Logger("../logfile.txt");
 
 public:
@@ -30,8 +34,10 @@ public:
     const std::size_t getLineLength(std::size_t index) const;
 
     void switchLine(std::size_t newLineIdx);
+    // All Positions are 0-indexed in TB Class
+    void moveCursor(Position pos);
 
-    void insertAt(Position pos, const char c);
+    void insert(const char c);
 
-    void eraseAt(Position pos);
+    void erase();
 };

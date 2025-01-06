@@ -69,12 +69,21 @@ void Cursey::move_cursor(const Position pos) {
 void Cursey::move(Direction direction) {
     bool needs_refresh =
         false; // flag deciding if full screen refresh is needed
-    line_length = buffer.getLineLength(cursor.row - 1); // Adjust the line length for the current row
+    line_length = buffer.getLineLength(
+        cursor.row - 1); // Adjust the line length for the current row
     switch (direction) {
     case Direction::Up:
         if (cursor.row > 1) {
+            if (buffer.getLineLength(cursor.row - 1) < original_cursor_col) {
+                cursor.col = buffer.getLineLength(cursor.row - 1);
+            } else if (buffer.getLineLength(cursor.row - 1) >=
+                       original_cursor_col) {
+                cursor.col = original_cursor_col;
+            }
             --cursor.row;
-        } else if (view_offset > 0) {
+        }
+
+        else if (view_offset > 0) {
             --view_offset; // Scroll up if at the top
             needs_refresh = true;
         }
@@ -82,6 +91,9 @@ void Cursey::move(Direction direction) {
 
     case Direction::Down:
         if (cursor.row < max_row) {
+            if (buffer.getLineLength(cursor.row + 1) < original_cursor_col) {
+                cursor.col = buffer.getLineLength(cursor.row + 1);
+            }
             ++cursor.row;
         }
 
@@ -93,18 +105,20 @@ void Cursey::move(Direction direction) {
         break;
 
     case Direction::Left:
-        if (cursor.col > 1)
+        if (cursor.col > 0) {
             --cursor.col;
+            original_cursor_col = cursor.col;
+        }
         break;
 
     case Direction::Right:
         // Prevent moving right if at the end of the line
         if (cursor.col <= line_length) {
             ++cursor.col;
+            original_cursor_col = cursor.col;
         }
         break;
     }
-
 
     if (needs_refresh) {
         render_file();
