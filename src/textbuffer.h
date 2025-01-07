@@ -5,24 +5,19 @@
 #include <string>
 #include <variant>
 #include <vector>
+#include "cursor.h"
 
-struct Position {
-    std::size_t row;
-    std::size_t col;
-
-    bool operator==(Position& other) {
-        return (row == other.row && col == other.col);
-    }
-};
+// forward decl
+class CursorManager;
 
 class TextBuffer {
 private:
     std::vector<std::variant<std::string, Gb>> buffer;
-    Position cursor;
+    CursorManager& cursor;
     Logger tblogger = Logger("../logfile.txt");
 
 public:
-    TextBuffer(const std::string& filepath);
+    TextBuffer(const std::string& filepath, CursorManager& cm);
 
     bool loadFile(const std::string& filepath);
 
@@ -34,8 +29,8 @@ public:
     const std::size_t getLineLength(std::size_t index) const;
 
     void switchLine(std::size_t newLineIdx);
-    // All Positions are 0-indexed in TB Class
-    void moveCursor(Position pos);
+    // movees to CursorManager Cursor
+    void moveCursor();
 
     void insert(const char c);
 
