@@ -13,11 +13,11 @@ class CursorManager;
 class TextBuffer {
 private:
     std::vector<std::variant<std::string, Gb>> buffer;
-    CursorManager& cursor;
+    std::size_t gbIndex = 0;
     Logger tblogger = Logger("../logfile.txt");
 
 public:
-    TextBuffer(const std::string& filepath, CursorManager& cm);
+    TextBuffer(const std::string& filepath);
 
     bool loadFile(const std::string& filepath);
 
@@ -28,11 +28,13 @@ public:
 
     const std::size_t getLineLength(std::size_t index) const;
 
+    // has to make original editted line a string and new line a gapbuffer
     void switchLine(std::size_t newLineIdx);
-    // movees to CursorManager Cursor
-    void moveCursor();
 
-    void insert(const char c);
+    // only used in insert and erase funcs to keep MVC
+    void moveCursor(const CursorManager& newCursor);
 
-    void erase();
+    void insert(const CursorManager& cm, const char c);
+
+    void erase(const CursorManager& cm);
 };

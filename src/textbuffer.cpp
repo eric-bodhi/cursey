@@ -8,9 +8,7 @@
 
 TextBuffer::TextBuffer(const std::string& filepath) {
     loadFile(filepath);
-    // cursor starts at (1,1) [1 indexed] so first line is gapbuffer
-    cursor.row = 0;
-    buffer.at(cursor.row) = Gb(getLine(0));
+    buffer.at(0) = Gb(getLine(0));
 }
 
 bool TextBuffer::loadFile(const std::string& filepath) {
@@ -49,48 +47,51 @@ const std::size_t TextBuffer::getLineLength(std::size_t index) const {
     return getLine(index).length();
 }
 
+// turns gapbuffer back to string and new line to gapbuffer (to be edited)
+// where cm is the current cursor position
 void TextBuffer::switchLine(std::size_t newLineIdx) {
-    if (cursor.row != newLineIdx) {
+    if (gbIndex != newLineIdx) {
         // Convert current line to string
-        if (std::holds_alternative<Gb>(buffer.at(cursor.row))) {
-            Gb& gbLine = std::get<Gb>(buffer.at(cursor.row));
-            buffer.at(cursor.row) = gbLine.to_string();
+        if (std::holds_alternative<Gb>(buffer.at(gbIndex))) {
+            Gb& gbLine = std::get<Gb>(buffer.at(gbIndex));
+            buffer.at(gbIndex) = gbLine.to_string();
         }
 
         // Update current line index
-        cursor.row = newLineIdx;
+        gbIndex = newLineIdx;
 
         // Convert new line to GapBuffer if it's a string
-        if (std::holds_alternative<std::string>(buffer.at(cursor.row))) {
+        if (std::holds_alternative<std::string>(buffer.at(newLineIdx))) {
             std::string lineString =
-                std::get<std::string>(buffer.at(cursor.row));
-            buffer.at(cursor.row) = Gb(lineString);
+                std::get<std::string>(buffer.at(newLineIdx));
+            buffer.at(newLineIdx) = Gb(lineString);
+            gbIndex = newLineIdx;
         }
     }
 }
 
-void TextBuffer::moveCursor(Position pos) {
-    if (pos == cursor) {
-        return;
+void TextBuffer::moveCursor(const CursorManager& newCursor) {
+    auto newCursorPos = newCursor.get();
+    if (gbIndex != newCursorPos.row) {
+        switchLine(newCursorPos.row);
     }
 
-    else if (pos.row != cursor.row) {
-        switchLine(pos.row);
-    }
-
-    if (std::holds_alternative<Gb>(buffer.at(cursor.row))) {
-        std::get<Gb>(buffer.at(cursor.row)).move_cursor(pos.col);
+    if (std::holds_alternative<Gb>(buffer.at(gbIndex))) {
+        std::get<Gb>(buffer.at(gbIndex)).move_cursor(newCursorPos.col);
     }
 }
 
-void TextBuffer::insert(const char c) {
+void TextBuffer::insert(const CursorManager& cm, const char c) {
+    auto cursor = cm.get();
+    moveCursor(cm);
     if (std::holds_alternative<Gb>(buffer.at(cursor.row))) {
         Gb& gbLine = std::get<Gb>(buffer.at(cursor.row));
         gbLine.insert(c);
     }
 }
 
-void TextBuffer::erase() {
+void TextBuffer::erase(const CursorManager& cm) {
+    auto cursor = cm.get();
     if (std::holds_alternative<Gb>(buffer.at(cursor.row))) {
         Gb& gbLine = std::get<Gb>(buffer.at(cursor.row));
         gbLine.del();

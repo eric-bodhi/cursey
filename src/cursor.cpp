@@ -49,3 +49,11 @@ void CursorManager::moveAbs(const Cursor& argCursor) {
     m_cursor.col = argCursor.col;
     m_cursor.row = argCursor.row;
 }
+
+const Cursor& CursorManager::get() {
+    return m_cursor;
+}
+
+const Cursor& CursorManager::get() const {
+    return m_cursor;
+}
