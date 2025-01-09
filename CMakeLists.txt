@@ -16,4 +16,5 @@ add_executable(main
   src/editor.cpp
   src/log.cpp
   src/deque_gb.cpp
+  src/cursor.cpp
 )

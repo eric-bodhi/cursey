@@ -1,7 +1,7 @@
 #pragma once
 
+#include "cursor.h"
 #include "textbuffer.h"
-#include <cstddef>
 #include <string>
 #include <termios.h>
 
@@ -12,7 +12,7 @@ public:
     ~TermManager();
 
     // Get the current terminal size (rows and columns)
-    Position get_terminal_size();
+    Cursor get_terminal_size();
 
 private:
     struct termios origTermios; // Store original terminal settings
@@ -21,31 +21,19 @@ private:
     void disableRawMode(); // Disable raw mode and restore original settings
 };
 
-// Enum to define the possible movement directions for the cursor
-enum class Direction {
-    Up,
-    Down,
-    Left,
-    Right,
-};
-
 // Handles the rendering and cursor movement for the text editor
 class Cursey {
 private:
-    Position cursor;   // Current cursor position
-    size_t original_cursor_col; // Retaining cursor memory
     TermManager tm;    // Terminal manager for terminal operations
-    TextBuffer buffer; // Buffer to hold the text content
 
-    const Position boundary;   // Terminal size boundaries
+    const Cursor boundary;     // Terminal size boundaries
     const std::size_t max_row; // Max rows in the terminal
     const std::size_t max_col; // Max columns in the terminal
 
     std::size_t view_offset; // Tracks the top line displayed on the screen
 
-    std::size_t line_length; // current line length
-
     friend class Editor;
+
 public:
     // Constructor to initialize Cursey with a file path
     explicit Cursey(const std::string& filepath);
@@ -54,15 +42,13 @@ public:
     void clear_screen();
 
     // Moves the cursor to the given position
-    void move_cursor(const Position pos);
+    void render_cursor(const Cursor& cursor);
 
     // Moves the cursor in the specified direction
     void move(Direction direction);
 
     // Renders the content of the file on the screen
-    void render_file();
+    void render_file(const Cursor& cursor, const TextBuffer& buffer);
 
     void render_line(const std::size_t idx);
-    // cursor is 1-idx so must subtract for 0-idx
-    Position zeroIdxCursor();
 };

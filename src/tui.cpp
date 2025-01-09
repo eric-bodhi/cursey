@@ -1,4 +1,6 @@
 #include "tui.h"
+#include "defs.h"
+#include "textbuffer.h"
 #include <algorithm>
 #include <cstdlib>
 #include <fstream>
@@ -40,14 +42,14 @@ void TermManager::disableRawMode() {
 }
 
 // Gets the current terminal size
-Position TermManager::get_terminal_size() {
+Cursor TermManager::get_terminal_size() {
     struct winsize w;
     ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
     return {w.ws_row, w.ws_col};
 }
 
 Cursey::Cursey(const std::string& filepath)
-    : buffer(filepath), cursor({1, 1}), view_offset(0),
+    : view_offset(0),
       boundary(tm.get_terminal_size()), max_row(boundary.row - 1),
       max_col(boundary.col - 1) {
 }
@@ -59,76 +61,37 @@ void Cursey::clear_screen() {
 }
 
 // Moves the cursor to the specified position
-void Cursey::move_cursor(const Position pos) {
-    std::string seq =
-        "\x1b[" + std::to_string(pos.row) + ";" + std::to_string(pos.col) + "H";
+void Cursey::render_cursor(const Cursor& cursor) {
+    std::string seq = "\x1b[" + std::to_string(cursor.row) + ";" +
+                      std::to_string(cursor.col) + "H";
     write(STDOUT_FILENO, seq.c_str(), seq.size());
 }
 
-// Moves the cursor in the specified direction
-void Cursey::move(Direction direction) {
-    bool needs_refresh =
-        false; // flag deciding if full screen refresh is needed
-    line_length = buffer.getLineLength(
-        cursor.row - 1); // Adjust the line length for the current row
-    switch (direction) {
-    case Direction::Up:
-        if (cursor.row > 1) {
-            if (buffer.getLineLength(cursor.row - 1) < original_cursor_col) {
-                cursor.col = buffer.getLineLength(cursor.row - 1);
-            } else if (buffer.getLineLength(cursor.row - 1) >=
-                       original_cursor_col) {
-                cursor.col = original_cursor_col;
-            }
-            --cursor.row;
-        }
-
-        else if (view_offset > 0) {
-            --view_offset; // Scroll up if at the top
-            needs_refresh = true;
-        }
-        break;
-
-    case Direction::Down:
-        if (cursor.row < max_row) {
-            if (buffer.getLineLength(cursor.row + 1) < original_cursor_col) {
-                cursor.col = buffer.getLineLength(cursor.row + 1);
-            }
-            ++cursor.row;
-        }
-
-        else if (view_offset + max_row < buffer.lineCount()) {
-            ++view_offset; // Scroll down if at the
-                           // bottom
-            needs_refresh = true;
-        }
-        break;
-
-    case Direction::Left:
-        if (cursor.col > 0) {
-            --cursor.col;
-            original_cursor_col = cursor.col;
-        }
-        break;
-
-    case Direction::Right:
-        // Prevent moving right if at the end of the line
-        if (cursor.col <= line_length) {
-            ++cursor.col;
-            original_cursor_col = cursor.col;
-        }
-        break;
-    }
-
-    if (needs_refresh) {
-        render_file();
-    }
-    move_cursor(cursor);
+/* ViewOffset logic
+case Direction::Up:
+if (view_offset > 0) {
+    --view_offset; // Scroll up if at the top
+    needs_refresh = true;
 }
+break;
+
+case Direction::Down:
+if (view_offset + max_row < buffer.lineCount()) {
+    ++view_offset; // Scroll down if at the
+                   // bottom
+    needs_refresh = true;
+}
+break;
+
+if (needs_refresh) {
+    render_file();
+}
+render_cursor(cursor);
+*/
 
 // Renders the content of the file on the screen
 // TODO optimize so only renders changed lines and not whole file
-void Cursey::render_file() {
+void Cursey::render_file(const Cursor& cursor, const TextBuffer& buffer) {
     clear_screen();
 
     for (std::size_t i = 0; i < max_row && i + view_offset < buffer.lineCount();
@@ -138,9 +101,5 @@ void Cursey::render_file() {
         write(STDOUT_FILENO, "\r\n", 2); // Move to the next line
         fflush(stdout);
     }
-    move_cursor(cursor);
-}
-
-Position Cursey::zeroIdxCursor() {
-    return {cursor.row - 1, cursor.col - 1};
+    render_cursor(cursor);
 }

@@ -1,6 +1,8 @@
 #pragma once
 
+#include "cursor.h"
 #include "log.h"
+#include "textbuffer.h"
 #include "tui.h"
 
 class Editor {
@@ -12,8 +14,10 @@ private:
     };
 
     Mode currMode = Mode::Normal;
-    Cursey cursey;
     Logger logger = Logger("../logfile.txt");
+    Cursey cursey;
+    CursorManager cm;
+    TextBuffer buffer;
 
 public:
     explicit Editor(const std::string& filepath);

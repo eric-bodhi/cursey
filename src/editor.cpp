@@ -1,32 +1,36 @@
 #include "editor.h"
+#include "cursor.h"
 #include "tui.h"
-#include <complex>
 #include <unistd.h>
+#include <string>
 
-Editor::Editor(const std::string& filepath) : cursey(filepath) {
+Editor::Editor(const std::string& filepath) : cursey(filepath), buffer(filepath), cm(buffer, cursey.max_row){
 }
 
 void Editor::normalMode(const char input) {
     logger.log("normal mode");
     switch (input) {
-    // TODO fix exit
     case 'q':
         break;
 
     case 'h':
-        cursey.move(Direction::Left);
+        cm.moveDir(Direction::Left);
+        cursey.render_cursor(cm.getOneIdx());
         break;
 
     case 'j':
-        cursey.move(Direction::Down);
+        cm.moveDir(Direction::Down);
+        cursey.render_cursor(cm.getOneIdx());
         break;
 
     case 'k':
-        cursey.move(Direction::Up);
+        cm.moveDir(Direction::Up);
+        cursey.render_cursor(cm.getOneIdx());
         break;
 
     case 'l':
-        cursey.move(Direction::Right);
+        cm.moveDir(Direction::Right);
+        cursey.render_cursor(cm.getOneIdx());
         break;
 
     case 'i':
@@ -41,45 +45,43 @@ void Editor::normalMode(const char input) {
 }
 
 void Editor::insertMode(const char input) {
+    auto cursorpos = cm.get();
     if (input == 27) { // ESC key to switch to normal mode
         logger.log("Switching to Normal mode. Cursor at: " +
-                   std::to_string(cursey.cursor.row) + " " +
-                   std::to_string(cursey.cursor.col));
+                   std::to_string(cursorpos.row) + " " +
+                   std::to_string(cursorpos.col));
         currMode = Mode::Normal;
         return;
     } else if (input == 127) { // Delete key (ASCII 127)
-        if (cursey.cursor.col <=
-            cursey.buffer.getLineLength(cursey.cursor.row - 1)) {
-            logger.log("Del " + std::to_string(cursey.cursor.row) + " " +
-                       std::to_string(cursey.cursor.col));
-            cursey.buffer.moveCursor(cursey.zeroIdxCursor());
-            cursey.buffer.erase();
-            cursey.render_file(); // Re-render after the change
-            cursey.move(Direction::Left);
+        if (cursorpos.col > 0) {
+            logger.log("Del " + std::to_string(cursorpos.row) + " " +
+                       std::to_string(cursorpos.col));
+            buffer.erase(cm);
+            cm.moveDir(Direction::Left);
+            cursey.render_file(cm.getOneIdx(), buffer); // Re-render after the change
         }
     } else {
         // Insert the character at the cursor position
-        std::string log_message =
-            "Ins " + std::to_string(cursey.cursor.row) + " " +
-            std::to_string(cursey.cursor.col) + " " + std::string(1, input);
+        std::string log_message = "Ins " + std::to_string(cm.get().row) +
+                                  " " + std::to_string(cm.get().col) +
+                                  " " + std::string(1, input);
 
         logger.log(log_message);
-        cursey.buffer.moveCursor(cursey.zeroIdxCursor());
-        cursey.buffer.insert(input);
-        cursey.render_file();
-        cursey.move(Direction::Right); // Move right after insertion
+        buffer.insert(cm, input);
+        cm.moveDir(Direction::Right);
+        cursey.render_file(cm.getOneIdx(), buffer);
     }
 }
 
 void Editor::run() {
     char c;
-    cursey.render_file();
+    cursey.render_file(cm.getOneIdx(), buffer);
     while (true) {
         read(STDIN_FILENO, &c, 1);
         if (currMode == Mode::Normal) {
             if (c == 'q') {
-                for (std::size_t i = 0; i < cursey.buffer.lineCount(); i++) {
-                    logger.log(cursey.buffer.getLine(i));
+                for (std::size_t i = 0; i < buffer.lineCount(); i++) {
+                    logger.log(buffer.getLine(i));
                 }
                 break;
             }

@@ -57,3 +57,11 @@ const Cursor& CursorManager::get() {
 const Cursor& CursorManager::get() const {
     return m_cursor;
 }
+
+const Cursor CursorManager::getOneIdx() {
+    return Cursor(m_cursor.row + 1, m_cursor.col + 1, m_cursor.original_col + 1);
+}
+
+const Cursor CursorManager::getOneIdx() const {
+    return Cursor(m_cursor.row + 1, m_cursor.col + 1, m_cursor.original_col + 1);
+}

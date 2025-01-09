@@ -25,6 +25,9 @@ public:
     const Cursor& get();
     const Cursor& get() const;
 
+    const Cursor getOneIdx();
+    const Cursor getOneIdx() const;
+
     void moveDir(Direction direction);
     void moveAbs(const Cursor& pos);
 };
