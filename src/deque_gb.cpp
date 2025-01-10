@@ -4,7 +4,13 @@
 #include <stdexcept>
 
 Gb::Gb(const std::string& string, const size_t& cursor) {
-
+    for (std::size_t i = 0; i < cursor; i++) {
+        left.push_back(string.at(i));
+    }
+    for (std::size_t i = 0; i < string.size(); i++) {
+        right.push_back(string.at(i));
+    }
+    move_cursor(cursor);
 }
 
 void Gb::move_cursor(size_t index) {

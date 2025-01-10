@@ -8,7 +8,6 @@ Editor::Editor(const std::string& filepath) : cursey(filepath), buffer(filepath)
 }
 
 void Editor::normalMode(const char input) {
-    logger.log("normal mode");
     switch (input) {
     case 'q':
         break;
@@ -80,9 +79,6 @@ void Editor::run() {
         read(STDIN_FILENO, &c, 1);
         if (currMode == Mode::Normal) {
             if (c == 'q') {
-                for (std::size_t i = 0; i < buffer.lineCount(); i++) {
-                    logger.log(buffer.getLine(i));
-                }
                 break;
             }
             normalMode(c);
