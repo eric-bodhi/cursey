@@ -47,7 +47,7 @@ Cursor TermManager::get_terminal_size() {
 }
 
 Cursey::Cursey(const std::string& filepath)
-    : view_offset(0), boundary(tm.get_terminal_size()),
+    : boundary(tm.get_terminal_size()),
       max_row(boundary.row - 1), max_col(boundary.col - 1) {
 }
 
@@ -58,23 +58,13 @@ void Cursey::clear_screen() {
 }
 
 // Moves the cursor to the specified position
-void Cursey::render_cursor(const Cursor& cursor, const TextBuffer& buffer) {
-    // Adjust view_offset if the cursor is out of view
-    if (cursor.row < 1 && view_offset > 0) {
-        --view_offset;               // Scroll up
-        render_file(cursor, buffer); // Re-render to adjust the view
-    } else if (cursor.row > max_row &&
-               view_offset + max_row < buffer.lineCount()) {
-        ++view_offset;               // Scroll down
-        render_file(cursor, buffer); // Re-render to adjust the view
-    }
-
+void Cursey::render_cursor(const Cursor& cursor) {
     std::string seq = "\x1b[" + std::to_string(cursor.row) + ";" +
                       std::to_string(cursor.col) + "H";
     write(STDOUT_FILENO, seq.c_str(), seq.size());
 }
 
-void Cursey::render_file(const Cursor& cursor, const TextBuffer& buffer) {
+void Cursey::render_file(const Cursor& cursor, const TextBuffer& buffer, std::size_t view_offset) {
     clear_screen();
 
     // Render the visible portion of the buffer

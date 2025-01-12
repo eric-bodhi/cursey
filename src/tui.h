@@ -30,9 +30,6 @@ private:
     const std::size_t max_row; // Max rows in the terminal
     const std::size_t max_col; // Max columns in the terminal
 
-    int view_offset = 0;
-    bool needs_refresh = false;
-
     friend class Editor;
 
 public:
@@ -42,16 +39,9 @@ public:
     // Clears the terminal screen
     void clear_screen();
 
-    bool needs_cursor_refresh(const Cursor& cursor, std::size_t lineCount);
-
     // Moves the cursor to the given position
-    void render_cursor(const Cursor& cursor, const TextBuffer& buffer);
-
-    // Moves the cursor in the specified direction
-    void move(Direction direction);
+    void render_cursor(const Cursor& cursor);
 
     // Renders the content of the file on the screen
-    void render_file(const Cursor& cursor, const TextBuffer& buffer);
-
-    void render_line(const std::size_t idx);
+    void render_file(const Cursor& cursor, const TextBuffer& buffer, std::size_t view_offset);
 };

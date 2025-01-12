@@ -4,6 +4,7 @@
 #include "log.h"
 #include "textbuffer.h"
 #include "tui.h"
+#include "viewportmanager.h"
 
 class Editor {
 private:
@@ -17,7 +18,15 @@ private:
     Logger logger = Logger("../logfile.txt");
     Cursey cursey;
     CursorManager cm;
+    ViewportManager viewport;
     TextBuffer buffer;
+
+    void updateView() {
+        auto modelCursor = cm.get();
+        viewport.adjustViewPort(modelCursor);
+        auto screenCursor = viewport.modelToScreen(modelCursor);
+        cursey.render_file(screenCursor, buffer, viewport.getViewOffset());
+    }
 
 public:
     explicit Editor(const std::string& filepath);

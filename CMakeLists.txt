@@ -17,4 +17,5 @@ add_executable(main
   src/log.cpp
   src/deque_gb.cpp
   src/cursor.cpp
+  src/viewportmanager.cpp
 )
