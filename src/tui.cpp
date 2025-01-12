@@ -3,8 +3,6 @@
 #include "textbuffer.h"
 #include <algorithm>
 #include <cstdlib>
-#include <fstream>
-#include <ranges>
 #include <string>
 #include <sys/ioctl.h>
 #include <termios.h>
@@ -49,9 +47,8 @@ Cursor TermManager::get_terminal_size() {
 }
 
 Cursey::Cursey(const std::string& filepath)
-    : view_offset(0),
-      boundary(tm.get_terminal_size()), max_row(boundary.row - 1),
-      max_col(boundary.col - 1) {
+    : view_offset(0), boundary(tm.get_terminal_size()),
+      max_row(boundary.row - 1), max_col(boundary.col - 1) {
 }
 
 // Clears the terminal screen
@@ -61,45 +58,34 @@ void Cursey::clear_screen() {
 }
 
 // Moves the cursor to the specified position
-void Cursey::render_cursor(const Cursor& cursor) {
+void Cursey::render_cursor(const Cursor& cursor, const TextBuffer& buffer) {
+    // Adjust view_offset if the cursor is out of view
+    if (cursor.row < 1 && view_offset > 0) {
+        --view_offset;               // Scroll up
+        render_file(cursor, buffer); // Re-render to adjust the view
+    } else if (cursor.row > max_row &&
+               view_offset + max_row < buffer.lineCount()) {
+        ++view_offset;               // Scroll down
+        render_file(cursor, buffer); // Re-render to adjust the view
+    }
+
     std::string seq = "\x1b[" + std::to_string(cursor.row) + ";" +
                       std::to_string(cursor.col) + "H";
     write(STDOUT_FILENO, seq.c_str(), seq.size());
 }
 
-/* ViewOffset logic
-case Direction::Up:
-if (view_offset > 0) {
-    --view_offset; // Scroll up if at the top
-    needs_refresh = true;
-}
-break;
-
-case Direction::Down:
-if (view_offset + max_row < buffer.lineCount()) {
-    ++view_offset; // Scroll down if at the
-                   // bottom
-    needs_refresh = true;
-}
-break;
-
-if (needs_refresh) {
-    render_file();
-}
-render_cursor(cursor);
-*/
-
-// Renders the content of the file on the screen
-// TODO optimize so only renders changed lines and not whole file
 void Cursey::render_file(const Cursor& cursor, const TextBuffer& buffer) {
     clear_screen();
 
-    for (std::size_t i = 0; i < max_row && i + view_offset < buffer.lineCount();
-         ++i) {
+    // Render the visible portion of the buffer
+    for (std::size_t i = 0; i < max_row && i + view_offset < buffer.lineCount(); ++i) {
         const std::string& line = buffer.getLine(i + view_offset);
         write(STDOUT_FILENO, line.c_str(), std::min(line.size(), max_col));
         write(STDOUT_FILENO, "\r\n", 2); // Move to the next line
-        fflush(stdout);
     }
-    render_cursor(cursor);
+
+    // The cursor will always be placed after rendering
+    std::string seq = "\x1b[" + std::to_string(cursor.row) + ";" +
+                      std::to_string(cursor.col) + "H";
+    write(STDOUT_FILENO, seq.c_str(), seq.size());
 }

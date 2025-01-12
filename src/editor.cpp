@@ -14,22 +14,22 @@ void Editor::normalMode(const char input) {
 
     case 'h':
         cm.moveDir(Direction::Left);
-        cursey.render_cursor(cm.getOneIdx());
+        cursey.render_cursor(cm.getOneIdx(), buffer);
         break;
 
     case 'j':
         cm.moveDir(Direction::Down);
-        cursey.render_cursor(cm.getOneIdx());
+        cursey.render_cursor(cm.getOneIdx(), buffer);
         break;
 
     case 'k':
         cm.moveDir(Direction::Up);
-        cursey.render_cursor(cm.getOneIdx());
+        cursey.render_cursor(cm.getOneIdx(), buffer);
         break;
 
     case 'l':
         cm.moveDir(Direction::Right);
-        cursey.render_cursor(cm.getOneIdx());
+        cursey.render_cursor(cm.getOneIdx(), buffer);
         break;
 
     case 'i':
