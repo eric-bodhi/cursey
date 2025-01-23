@@ -5,6 +5,7 @@
 #include "textbuffer.h"
 #include "tui.h"
 #include "viewportmanager.h"
+#include <string>
 
 class Editor {
 private:
@@ -20,6 +21,7 @@ private:
     CursorManager cm;
     ViewportManager viewport;
     TextBuffer buffer;
+    std::string m_filepath;
 
     void updateView() {
         auto modelCursor = cm.get();
@@ -33,10 +35,11 @@ public:
 
     // TODO: Each respective mode will handle what happens in that given mode
     // normal mode will interpret input char as switching to new mode etc
-    void normalMode(const char input);
+    bool normalMode(const char input);
     void insertMode(const char input);
-    // void commandMode(const char input);
 
-    // main loop
+    void writeFile();
+
+    // TODO DISPATCH TABLE for commands using std::function
     void run();
 };

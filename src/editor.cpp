@@ -1,20 +1,39 @@
 #include "editor.h"
 #include "cursor.h"
 #include "tui.h"
+#include <fstream>
+#include <iostream>
 #include <string>
 #include <unistd.h>
 
 Editor::Editor(const std::string& filepath)
     : cursey(filepath), buffer(filepath), cm(buffer, cursey.max_row),
-      viewport(cursey.max_row, cursey.max_col) {
+      viewport(cursey.max_row, cursey.max_col), m_filepath(filepath) {
 }
 
-void Editor::normalMode(const char input) {
+void Editor::writeFile() {
+    std::ofstream file(m_filepath,
+                       std::ios::trunc); // `std::ios::trunc` clears the file
+    if (!file.is_open()) {
+        std::cerr << "Failed to open existing file: " << m_filepath << '\n';
+        return;
+    }
+
+    for (std::size_t i = 0; i < buffer.lineCount(); i++) {
+        file << buffer.getLine(i) << '\n';
+    }
+
+    file.close();
+}
+
+// returns shouldExit
+bool Editor::normalMode(const char input) {
     auto oldCursor = cm.get();
 
     switch (input) {
     case 'q':
-        break;
+        writeFile();
+        return true;
 
     case 'h':
         cm.moveDir(Direction::Left);
@@ -46,6 +65,8 @@ void Editor::normalMode(const char input) {
     if (oldCursor.row != newCursor.row || oldCursor.col != newCursor.col) {
         updateView();
     }
+
+    return false;
 }
 
 void Editor::insertMode(const char input) {
@@ -56,8 +77,7 @@ void Editor::insertMode(const char input) {
                    std::to_string(cursorpos.col));
         currMode = Mode::Normal;
         return;
-    }
-    else if (input == 127) { // Delete key (ASCII 127)
+    } else if (input == 127) { // Delete key (ASCII 127)
         if (cursorpos.col > 0) {
             logger.log("Del " + std::to_string(cursorpos.row) + " " +
                        std::to_string(cursorpos.col));
@@ -81,14 +101,11 @@ void Editor::insertMode(const char input) {
 void Editor::run() {
     char c;
     updateView();
-    while (true) {
+    bool shouldExit = false;
+    while (!shouldExit) {
         read(STDIN_FILENO, &c, 1);
         if (currMode == Mode::Normal) {
-            if (c == 'q') {
-                break;
-            }
-            normalMode(c);
-
+            shouldExit = normalMode(c);
         } else if (currMode == Mode::Insert) {
             insertMode(c);
         }
