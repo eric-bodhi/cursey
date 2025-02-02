@@ -32,6 +32,9 @@ void Editor::writeFile() {
 bool Editor::normalMode(const char input) {
     auto oldCursor = cm.get();
 
+    logger.log("Normal mode: " +
+               std::to_string(oldCursor.row) + " " +
+               std::to_string(oldCursor.col));
     switch (input) {
     case 'q':
         writeFile();
@@ -58,7 +61,7 @@ bool Editor::normalMode(const char input) {
         break;
 
     case ':':
-        execute(std::make_unique<DeleteLine>(cm));
+        execute(std::make_unique<DeleteLine>(cm, logger));
         break;
     }
 

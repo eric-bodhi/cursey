@@ -99,14 +99,16 @@ void TextBuffer::erase(const CursorManager& cm) {
 }
 
 // TODO: possibly fix gbLine logic since it deletes regardless of gapbuffer or not
+// TODO AND FIX CURSOR BEHAVIOR IN THIS
 void TextBuffer::deleteLine(const CursorManager& cm) {
     std::size_t lineIdx = cm.get().row;
     buffer.erase(buffer.begin() + lineIdx);
-    if (lineCount() - 1 == lineIdx && lineIdx != 0) {
+    if (lineIdx == 0 && lineCount() == 1) {
+        buffer.insert(buffer.begin() + lineIdx, "");
+    }
+    else if (lineCount() - 1 == lineIdx && lineIdx != 0) {
 
         switchLine(lineIdx - 1);
-    } else if (lineIdx == 0) {
-
     }
 }
 
