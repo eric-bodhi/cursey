@@ -1,5 +1,7 @@
 #include "editor.h"
+#include "commands.h"
 #include "cursor.h"
+#include "textbuffer.h"
 #include "tui.h"
 #include <fstream>
 #include <iostream>
@@ -54,11 +56,10 @@ bool Editor::normalMode(const char input) {
     case 'i':
         currMode = Mode::Insert;
         break;
-        /*
-        case ':':
-            commandMode(input);
-            break;
-        */
+
+    case ':':
+        execute(std::make_unique<DeleteLine>(cm));
+        break;
     }
 
     auto newCursor = cm.get();
@@ -96,6 +97,21 @@ void Editor::insertMode(const char input) {
         cm.moveDir(Direction::Right);
         updateView();
     }
+}
+
+TextBuffer& Editor::getBuffer() {
+    return buffer;
+}
+
+void Editor::updateView() {
+    auto modelCursor = cm.get();
+    viewport.adjustViewPort(modelCursor);
+    auto screenCursor = viewport.modelToScreen(modelCursor);
+    cursey.render_file(screenCursor, buffer, viewport.getViewOffset());
+}
+
+void Editor::execute(std::unique_ptr<Command> command) {
+    command->execute(*this);
 }
 
 void Editor::run() {

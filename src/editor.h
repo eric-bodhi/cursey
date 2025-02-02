@@ -6,6 +6,10 @@
 #include "tui.h"
 #include "viewportmanager.h"
 #include <string>
+#include <memory>
+
+// forward decl for execute()
+class Command;
 
 class Editor {
 private:
@@ -23,12 +27,7 @@ private:
     TextBuffer buffer;
     std::string m_filepath;
 
-    void updateView() {
-        auto modelCursor = cm.get();
-        viewport.adjustViewPort(modelCursor);
-        auto screenCursor = viewport.modelToScreen(modelCursor);
-        cursey.render_file(screenCursor, buffer, viewport.getViewOffset());
-    }
+
 
 public:
     explicit Editor(const std::string& filepath);
@@ -40,6 +39,19 @@ public:
 
     void writeFile();
 
-    // TODO DISPATCH TABLE for commands using std::function
     void run();
+
+    void execute(std::unique_ptr<Command> command);
+
+    void updateView();
+
+    // getters
+    TextBuffer& getBuffer();
 };
+
+class Command {
+public:
+    virtual ~Command() = default;
+    virtual void execute(Editor& editor) = 0;
+};
+// derived classes in commands.h

@@ -37,4 +37,6 @@ public:
     void insert(const CursorManager& cm, const char c);
 
     void erase(const CursorManager& cm);
+
+    void deleteLine(const CursorManager& cm);
 };
