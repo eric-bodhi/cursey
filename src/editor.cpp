@@ -61,7 +61,7 @@ bool Editor::normalMode(const char input) {
         break;
 
     case ':':
-        execute(std::make_unique<DeleteLine>(cm, logger));
+        currMode = Mode::Command;
         break;
     }
 
@@ -100,6 +100,10 @@ void Editor::insertMode(const char input) {
         cm.moveDir(Direction::Right);
         updateView();
     }
+}
+
+void Editor::commandMode(const std::string& command) {
+    // maybe table of "command" -
 }
 
 TextBuffer& Editor::getBuffer() {

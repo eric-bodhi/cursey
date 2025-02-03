@@ -17,6 +17,7 @@ private:
         Normal,
         Insert,
         Visual,
+        Command,
     };
 
     Mode currMode = Mode::Normal;
@@ -36,6 +37,7 @@ public:
     // normal mode will interpret input char as switching to new mode etc
     bool normalMode(const char input);
     void insertMode(const char input);
+    void commandMode(const std::string& command);
 
     void writeFile();
 
