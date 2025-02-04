@@ -9,8 +9,8 @@
 #include <unistd.h>
 
 Editor::Editor(const std::string& filepath)
-    : cursey(), buffer(filepath), viewport(cursey.get_terminal_size()), cm(buffer, cursey.get_terminal_size().max_row),
-    m_filepath(filepath) {
+    : cursey(), buffer(filepath), viewport(cursey.get_terminal_size()),
+      cm(buffer, cursey.get_terminal_size().max_row), m_filepath(filepath) {
 }
 
 void Editor::writeFile() {
@@ -30,29 +30,41 @@ void Editor::writeFile() {
 
 // returns shouldExit
 bool Editor::normalMode(int input) {
-    switch(input) {
-    case 'q': return true;
-    case 'h':  cm.moveDir(Direction::Left); break;
-    case 'j':  cm.moveDir(Direction::Down); break;
-    case 'k':    cm.moveDir(Direction::Up); break;
-    case 'l': cm.moveDir(Direction::Right); break;
-    case 'i': currMode = Mode::Insert; break;
-    case ':': currMode = Mode::Command; break;
+    switch (input) {
+    case 'q':
+        return true;
+    case 'h':
+        cm.moveDir(Direction::Left);
+        break;
+    case 'j':
+        cm.moveDir(Direction::Down);
+        break;
+    case 'k':
+        cm.moveDir(Direction::Up);
+        break;
+    case 'l':
+        cm.moveDir(Direction::Right);
+        break;
+    case 'i':
+        currMode = Mode::Insert;
+        break;
+    case ':':
+        currMode = Mode::Command;
+        break;
     }
 
     return false;
 }
 
 void Editor::insertMode(int input) {
-    if (input == 27) {  // ESC key
+    if (input == 27) { // ESC key
         currMode = Mode::Normal;
         return;
     }
 
     // Handle special characters
-    switch(input) {
+    switch (input) {
     case KEY_BACKSPACE:
-    case 127:  // Delete
         if (cm.get().col > 0) {
             buffer.erase(cm);
             cm.moveDir(Direction::Left);
@@ -63,7 +75,6 @@ void Editor::insertMode(int input) {
         // Handle newline insertion
         break;
     default:
-        // Insert regular character
         buffer.insert(cm, static_cast<char>(input));
         cm.moveDir(Direction::Right);
     }
@@ -96,7 +107,9 @@ void Editor::updateView() {
 }
 
 void Editor::execute(std::string_view command) {
-    Command::ftable.at(command)(*this);
+    if (Command::ftable.contains(command)) {
+        Command::ftable.at(command)(*this);
+    }
 }
 
 void Editor::run() {
@@ -108,35 +121,36 @@ void Editor::run() {
 
     while (!shouldExit) {
         switch (currMode) {
-            case Mode::Normal:
-            case Mode::Insert:
-            case Mode::Visual:
-                input = getch();  // Get single character input
-                break;
-            case Mode::Command:
-                input = 0;        // Command mode uses line input
-                break;
+        case Mode::Normal:
+        case Mode::Insert:
+        case Mode::Visual:
+            input = getch(); // Get single character input
+            break;
+        case Mode::Command:
+            input = 0; // Command mode uses line input
+            break;
         }
 
         switch (currMode) {
-            case Mode::Normal:
-                shouldExit = normalMode(input);
-                break;
+        case Mode::Normal:
+            shouldExit = normalMode(input);
+            break;
 
-            case Mode::Insert:
-                insertMode(input);
-                break;
+        case Mode::Insert:
+            insertMode(input);
+            break;
 
-            case Mode::Command:
-                commandMode();  // Handles its own input loop
-                break;
+        case Mode::Command:
+            commandMode(); // Handles its own input loop
+            break;
 
-            case Mode::Visual:
-                break;
+        case Mode::Visual:
+            break;
         }
 
         // Always update view after processing input
-        if (!shouldExit) updateView();
+        //if (!shouldExit)
+            updateView();
     }
 
     // Cleanup before exit
