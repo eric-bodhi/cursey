@@ -18,4 +18,5 @@ add_executable(main
   src/deque_gb.cpp
   src/cursor.cpp
   src/viewportmanager.cpp
+  src/commands.cpp
 )

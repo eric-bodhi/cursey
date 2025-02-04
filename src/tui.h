@@ -44,4 +44,6 @@ public:
 
     // Renders the content of the file on the screen
     void render_file(const Cursor& cursor, const TextBuffer& buffer, std::size_t view_offset);
+
+    void render_command_line(const std::string& command);
 };

@@ -8,9 +8,6 @@
 #include <string>
 #include <memory>
 
-// forward decl for execute()
-class Command;
-
 class Editor {
 private:
     enum class Mode {
@@ -43,17 +40,11 @@ public:
 
     void run();
 
-    void execute(std::unique_ptr<Command> command);
+    void execute(std::string_view command);
 
     void updateView();
 
     // getters
     TextBuffer& getBuffer();
+    CursorManager& getCm();
 };
-
-class Command {
-public:
-    virtual ~Command() = default;
-    virtual void execute(Editor& editor) = 0;
-};
-// derived classes in commands.h

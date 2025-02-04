@@ -37,6 +37,7 @@ bool Editor::normalMode(const char input) {
                std::to_string(oldCursor.col));
     switch (input) {
     case 'q':
+        writeFile();
         return true;
 
     case 'h':
@@ -60,7 +61,7 @@ bool Editor::normalMode(const char input) {
         break;
 
     case ':':
-        cursey.render_command_line("example");
+        currMode = Mode::Command;
         break;
     }
 

@@ -7,6 +7,7 @@
 #include <sys/ioctl.h>
 #include <termios.h>
 #include <unistd.h>
+#include <cstring>
 
 // TermManager constructor to initialize raw mode
 TermManager::TermManager() {
@@ -68,14 +69,29 @@ void Cursey::render_file(const Cursor& cursor, const TextBuffer& buffer, std::si
     clear_screen();
 
     // Render the visible portion of the buffer
-    for (std::size_t i = 0; i < max_row && i + view_offset < buffer.lineCount(); ++i) {
+    for (std::size_t i = 0; i < max_row - 1 && i + view_offset < buffer.lineCount(); ++i) {
         const std::string& line = buffer.getLine(i + view_offset);
         write(STDOUT_FILENO, line.c_str(), std::min(line.size(), max_col));
         write(STDOUT_FILENO, "\r\n", 2); // Move to the next line
     }
+    render_cursor(cursor);
+}
 
-    // The cursor will always be placed after rendering
-    std::string seq = "\x1b[" + std::to_string(cursor.row) + ";" +
-                      std::to_string(cursor.col) + "H";
-    write(STDOUT_FILENO, seq.c_str(), seq.size());
+
+void Cursey::render_command_line(const std::string& command) {
+    // Move to command line row (1-based) and clear line
+    char move_cursor[32];
+    snprintf(move_cursor, sizeof(move_cursor), "\x1b[%zu;1H", max_row);
+    write(STDOUT_FILENO, move_cursor, std::strlen(move_cursor));
+    write(STDOUT_FILENO, "\x1b[K", 3);  // Clear line
+
+    // Build and write command string
+    const std::string colon_command = ":" + command;
+    std::size_t write_length = std::min(colon_command.size(), max_col);
+    write(STDOUT_FILENO, colon_command.c_str(), write_length);
+
+    // Position cursor at end of command (1-based column)
+    snprintf(move_cursor, sizeof(move_cursor), "\x1b[%zu;%zuH",
+             max_row, write_length + 1);
+    write(STDOUT_FILENO, move_cursor, std::strlen(move_cursor));
 }
