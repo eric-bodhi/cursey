@@ -9,8 +9,8 @@
 #include <unistd.h>
 
 Editor::Editor(const std::string& filepath)
-    : cursey(filepath), buffer(filepath), cm(buffer, cursey.max_row),
-      viewport(cursey.max_row, cursey.max_col), m_filepath(filepath) {
+    : cursey(), buffer(filepath), viewport(cursey.get_terminal_size()), cm(buffer, cursey.get_terminal_size().max_row),
+    m_filepath(filepath) {
 }
 
 void Editor::writeFile() {
@@ -29,136 +29,55 @@ void Editor::writeFile() {
 }
 
 // returns shouldExit
-bool Editor::normalMode(const char input) {
-    auto oldCursor = cm.get();
-
-    logger.log("Normal mode: " + std::to_string(oldCursor.row) + " " +
-               std::to_string(oldCursor.col));
-    switch (input) {
-    case 'q':
-        return true;
-
-    case 'h':
-        cm.moveDir(Direction::Left);
-        break;
-
-    case 'j':
-        cm.moveDir(Direction::Down);
-        break;
-
-    case 'k':
-        cm.moveDir(Direction::Up);
-        break;
-
-    case 'l':
-        cm.moveDir(Direction::Right);
-        break;
-
-    case 'i':
-        currMode = Mode::Insert;
-        break;
-
-    case ':':
-        cursey.render_command_line("");
-        currMode = Mode::Command;
-        break;
-    }
-
-    auto newCursor = cm.get();
-    if (oldCursor.row != newCursor.row || oldCursor.col != newCursor.col) {
-        updateView();
+bool Editor::normalMode(int input) {
+    switch(input) {
+    case 'q': return true;
+    case 'h':  cm.moveDir(Direction::Left); break;
+    case 'j':  cm.moveDir(Direction::Down); break;
+    case 'k':    cm.moveDir(Direction::Up); break;
+    case 'l': cm.moveDir(Direction::Right); break;
+    case 'i': currMode = Mode::Insert; break;
+    case ':': currMode = Mode::Command; break;
     }
 
     return false;
 }
 
-void Editor::insertMode(const char input) {
-    auto cursorpos = cm.get();
-    if (input == 27) { // ESC key to switch to normal mode
-        logger.log("Switching to Normal mode. Cursor at: " +
-                   std::to_string(cursorpos.row) + " " +
-                   std::to_string(cursorpos.col));
+void Editor::insertMode(int input) {
+    if (input == 27) {  // ESC key
         currMode = Mode::Normal;
         return;
-    } else if (input == 127) { // Delete key (ASCII 127)
-        if (cursorpos.col > 0) {
-            logger.log("Del " + std::to_string(cursorpos.row) + " " +
-                       std::to_string(cursorpos.col));
+    }
+
+    // Handle special characters
+    switch(input) {
+    case KEY_BACKSPACE:
+    case 127:  // Delete
+        if (cm.get().col > 0) {
             buffer.erase(cm);
             cm.moveDir(Direction::Left);
-            updateView();
         }
-    } else {
-        // Insert the character at the cursor position
-        std::string log_message = "Ins " + std::to_string(cm.get().row) + " " +
-                                  std::to_string(cm.get().col) + " " +
-                                  std::string(1, input);
-
-        logger.log(log_message);
-        buffer.insert(cm, input);
+        break;
+    case KEY_ENTER:
+    case '\n':
+        // Handle newline insertion
+        break;
+    default:
+        // Insert regular character
+        buffer.insert(cm, static_cast<char>(input));
         cm.moveDir(Direction::Right);
-        updateView();
     }
 }
 
 void Editor::commandMode() {
-    Gb command;
-    char c;
-    cursey.move_cursor_command_line();
-    while (true) {
-        read(STDIN_FILENO, &c, 1);
-        logger.log(std::to_string(c));
-        switch (c) {
-        case '\x1B': // ESC (could be start of arrow key)
-            handleEscapeSequence(command);
-            break;
+    echo();
+    char cmd_buf[256];
+    cursey.render_command_line("");
+    wgetnstr(cursey.get_cmd_win(), cmd_buf, sizeof(cmd_buf));
+    noecho();
 
-        case '\r': // Enter (13 is decimal for '\r')
-            execute(command.to_string());
-            currMode = Mode::Normal;
-            return; // Exit command mode
-
-        case 127: // Backspace
-            command.del();
-            command.move_left();
-            cm.moveDir(Direction::Left);
-            break;
-
-        default: // Regular characters
-            command.insert(c);
-            command.move_right();
-            cm.moveDir(Direction::Right);
-            break;
-        }
-        cursey.render_command_line(command.to_string());
-    }
-}
-
-void Editor::handleEscapeSequence(Gb& command) {
-    char seq[2];
-    // Read next 2 bytes (non-blocking)
-    if (read(STDIN_FILENO, &seq[0], 1) != 1) return;
-    if (read(STDIN_FILENO, &seq[1], 1) != 1) return;
-
-    if (seq[0] == '[') {
-        switch (seq[1]) {
-        case 'A': // Up arrow (not used here)
-            break;
-        case 'B': // Down arrow (not used here)
-            break;
-        case 'C': // Right arrow
-            cm.moveDir(Direction::Right);
-            command.move_right();
-            break;
-        case 'D': // Left arrow
-            cm.moveDir(Direction::Left);
-            command.move_left();
-            break;
-        }
-    } else {
-        // Pure ESC key (exit command mode)
-        currMode = Mode::Normal;
-    }
+    execute(cmd_buf);
+    currMode = Mode::Normal;
 }
 
 TextBuffer& Editor::getBuffer() {
@@ -181,26 +100,45 @@ void Editor::execute(std::string_view command) {
 }
 
 void Editor::run() {
-    char c;
-    updateView();
+    int input;
     bool shouldExit = false;
+
+    // Initial render
+    updateView();
+
     while (!shouldExit) {
-        read(STDIN_FILENO, &c, 1);
         switch (currMode) {
-        case Mode::Normal:
-            shouldExit = normalMode(c);
-            break;
-
-        case Mode::Insert:
-            insertMode(c);
-            break;
-
-        case Mode::Command:
-            commandMode();
-            break;
-
-        case Mode::Visual:
-            break;
+            case Mode::Normal:
+            case Mode::Insert:
+            case Mode::Visual:
+                input = getch();  // Get single character input
+                break;
+            case Mode::Command:
+                input = 0;        // Command mode uses line input
+                break;
         }
+
+        switch (currMode) {
+            case Mode::Normal:
+                shouldExit = normalMode(input);
+                break;
+
+            case Mode::Insert:
+                insertMode(input);
+                break;
+
+            case Mode::Command:
+                commandMode();  // Handles its own input loop
+                break;
+
+            case Mode::Visual:
+                break;
+        }
+
+        // Always update view after processing input
+        if (!shouldExit) updateView();
     }
+
+    // Cleanup before exit
+    writeFile();
 }

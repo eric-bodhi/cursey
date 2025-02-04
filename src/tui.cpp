@@ -1,10 +1,10 @@
 #include "tui.h"
 
 Cursey::Cursey() {
-    initscr();              // Initialize ncurses
-    cbreak();               // Disable line buffering
-    noecho();               // Don't echo input
-    keypad(stdscr, TRUE);   // Enable special keys
+    initscr();            // Initialize ncurses
+    cbreak();             // Disable line buffering
+    noecho();             // Don't echo input
+    keypad(stdscr, TRUE); // Enable special keys
     refresh();
 
     getmaxyx(stdscr, max_row, max_col);
@@ -18,12 +18,14 @@ Cursey::~Cursey() {
     endwin();
 }
 
-void Cursey::render_file(const Cursor& cursor, const TextBuffer& buffer, std::size_t view_offset) {
+void Cursey::render_file(const Cursor& cursor, const TextBuffer& buffer,
+                         std::size_t view_offset) {
     wclear(main_win);
 
     // Render visible lines
     for (std::size_t i = 0; i < max_row - 1; i++) {
-        if (i + view_offset >= buffer.lineCount()) break;
+        if (i + view_offset >= buffer.lineCount())
+            break;
 
         const std::string line = buffer.getLine(i + view_offset);
         mvwaddnstr(main_win, i, 0, line.c_str(), max_col);
@@ -40,6 +42,10 @@ void Cursey::render_command_line(const std::string& command) {
     wrefresh(cmd_win);
 }
 
-std::pair<std::size_t, std::size_t> Cursey::get_terminal_size() {
+TermBoundaries Cursey::get_terminal_size() {
     return {max_row, max_col};
+}
+
+WINDOW* Cursey::get_cmd_win() {
+    return cmd_win;
 }

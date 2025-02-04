@@ -29,10 +29,9 @@ public:
 
     // TODO: Each respective mode will handle what happens in that given mode
     // normal mode will interpret input char as switching to new mode etc
-    bool normalMode(const char input);
-    void insertMode(const char input);
+    bool normalMode(int input);
+    void insertMode(int input);
     void commandMode();
-    void handleEscapeSequence(Gb& command);
 
     void writeFile();
 

@@ -1,15 +1,15 @@
 #pragma once
 
 #include "defs.h"
+#include "tui.h"
 #include <cstddef>
-#include <utility>
 
 class ViewportManager {
 private:
     std::size_t view_offset, max_visible_rows, max_visible_cols;
 
 public:
-    ViewportManager(std::size_t max_rows, std::size_t max_cols);
+    ViewportManager(TermBoundaries boundaries);
 
     // 0 to 1-idx
     Cursor modelToScreen(const Cursor& modelPos) const;
