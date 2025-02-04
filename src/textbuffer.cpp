@@ -110,5 +110,3 @@ void TextBuffer::deleteLine(const CursorManager& cm) {
         switchLine(lineIdx - 1);
     }
 }
-
-//TODO possibly refactor cursormanager to cursor for these functions

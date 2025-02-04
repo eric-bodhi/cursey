@@ -149,10 +149,7 @@ void Editor::run() {
         }
 
         // Always update view after processing input
-        //if (!shouldExit)
+        if (!shouldExit)
             updateView();
     }
-
-    // Cleanup before exit
-    writeFile();
 }
