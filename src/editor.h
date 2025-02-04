@@ -6,7 +6,6 @@
 #include "tui.h"
 #include "viewportmanager.h"
 #include <string>
-#include <memory>
 
 class Editor {
 private:
@@ -25,8 +24,6 @@ private:
     TextBuffer buffer;
     std::string m_filepath;
 
-
-
 public:
     explicit Editor(const std::string& filepath);
 
@@ -34,7 +31,8 @@ public:
     // normal mode will interpret input char as switching to new mode etc
     bool normalMode(const char input);
     void insertMode(const char input);
-    void commandMode(const std::string& command);
+    void commandMode();
+    void handleEscapeSequence(Gb& command);
 
     void writeFile();
 

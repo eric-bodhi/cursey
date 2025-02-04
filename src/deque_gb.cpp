@@ -35,7 +35,7 @@ void Gb::move_cursor(size_t index) {
 // (in)(de)crement cursor
 void Gb::move_left() {
     if (left.size() == 0) {
-        throw std::runtime_error("move left: out of range");
+        return;
     }
 
     right.push_front(left.back());
@@ -44,7 +44,7 @@ void Gb::move_left() {
 
 void Gb::move_right() {
     if (right.size() == 0) {
-        throw std::runtime_error("move right: out of range");
+        return;
     }
 
     left.push_back(right.front());

@@ -32,8 +32,7 @@ void Editor::writeFile() {
 bool Editor::normalMode(const char input) {
     auto oldCursor = cm.get();
 
-    logger.log("Normal mode: " +
-               std::to_string(oldCursor.row) + " " +
+    logger.log("Normal mode: " + std::to_string(oldCursor.row) + " " +
                std::to_string(oldCursor.col));
     switch (input) {
     case 'q':
@@ -60,7 +59,8 @@ bool Editor::normalMode(const char input) {
         break;
 
     case ':':
-        cursey.render_command_line("example");
+        cursey.render_command_line("");
+        currMode = Mode::Command;
         break;
     }
 
@@ -101,8 +101,64 @@ void Editor::insertMode(const char input) {
     }
 }
 
-void Editor::commandMode(const std::string& command) {
+void Editor::commandMode() {
+    Gb command;
+    char c;
+    cursey.move_cursor_command_line();
+    while (true) {
+        read(STDIN_FILENO, &c, 1);
+        logger.log(std::to_string(c));
+        switch (c) {
+        case '\x1B': // ESC (could be start of arrow key)
+            handleEscapeSequence(command);
+            break;
 
+        case '\r': // Enter (13 is decimal for '\r')
+            execute(command.to_string());
+            currMode = Mode::Normal;
+            return; // Exit command mode
+
+        case 127: // Backspace
+            command.del();
+            command.move_left();
+            cm.moveDir(Direction::Left);
+            break;
+
+        default: // Regular characters
+            command.insert(c);
+            command.move_right();
+            cm.moveDir(Direction::Right);
+            break;
+        }
+        cursey.render_command_line(command.to_string());
+    }
+}
+
+void Editor::handleEscapeSequence(Gb& command) {
+    char seq[2];
+    // Read next 2 bytes (non-blocking)
+    if (read(STDIN_FILENO, &seq[0], 1) != 1) return;
+    if (read(STDIN_FILENO, &seq[1], 1) != 1) return;
+
+    if (seq[0] == '[') {
+        switch (seq[1]) {
+        case 'A': // Up arrow (not used here)
+            break;
+        case 'B': // Down arrow (not used here)
+            break;
+        case 'C': // Right arrow
+            cm.moveDir(Direction::Right);
+            command.move_right();
+            break;
+        case 'D': // Left arrow
+            cm.moveDir(Direction::Left);
+            command.move_left();
+            break;
+        }
+    } else {
+        // Pure ESC key (exit command mode)
+        currMode = Mode::Normal;
+    }
 }
 
 TextBuffer& Editor::getBuffer() {
@@ -130,10 +186,21 @@ void Editor::run() {
     bool shouldExit = false;
     while (!shouldExit) {
         read(STDIN_FILENO, &c, 1);
-        if (currMode == Mode::Normal) {
+        switch (currMode) {
+        case Mode::Normal:
             shouldExit = normalMode(c);
-        } else if (currMode == Mode::Insert) {
+            break;
+
+        case Mode::Insert:
             insertMode(c);
+            break;
+
+        case Mode::Command:
+            commandMode();
+            break;
+
+        case Mode::Visual:
+            break;
         }
     }
 }
