@@ -1,16 +1,17 @@
 #include "cursor.h"
 #include "defs.h"
 
-CursorManager::CursorManager(TextBuffer& buffer, std::size_t max_r, const Cursor& argCursor)
+CursorManager::CursorManager(TextBuffer& buffer, std::size_t max_r,
+                             const Cursor& argCursor)
     : m_buffer(buffer), max_row(max_r), m_cursor(argCursor) {};
 
 void CursorManager::moveDir(Direction direction) {
     switch (direction) {
     case Direction::Up:
         if (m_cursor.row > 0) {
-            if (m_buffer.getLineLength(m_cursor.row - 1) <
+            if (m_buffer.getLineLength(m_cursor.row - 1) <=
                 m_cursor.original_col) {
-                m_cursor.col = m_buffer.getLineLength(m_cursor.row - 1);
+                m_cursor.col = m_buffer.getLineLength(m_cursor.row - 1) - 1;
             } else if (m_buffer.getLineLength(m_cursor.row - 1) >=
                        m_cursor.original_col) {
                 m_cursor.col = m_cursor.original_col;
@@ -21,9 +22,12 @@ void CursorManager::moveDir(Direction direction) {
 
     case Direction::Down:
         if (m_cursor.row < m_buffer.lineCount() - 1) {
-            if (m_buffer.getLineLength(m_cursor.row + 1) <
+            if (m_buffer.getLineLength(m_cursor.row + 1) <=
                 m_cursor.original_col) {
-                m_cursor.col = m_buffer.getLineLength(m_cursor.row + 1);
+                m_cursor.col = m_buffer.getLineLength(m_cursor.row + 1) - 1;
+            } else if (m_buffer.getLineLength(m_cursor.row + 1) >=
+                       m_cursor.original_col) {
+                m_cursor.col = m_cursor.original_col;
             }
             ++m_cursor.row;
         }
@@ -61,9 +65,11 @@ const Cursor& CursorManager::get() const {
 }
 
 const Cursor CursorManager::getOneIdx() {
-    return Cursor(m_cursor.row + 1, m_cursor.col + 1, m_cursor.original_col + 1);
+    return Cursor(m_cursor.row + 1, m_cursor.col + 1,
+                  m_cursor.original_col + 1);
 }
 
 const Cursor CursorManager::getOneIdx() const {
-    return Cursor(m_cursor.row + 1, m_cursor.col + 1, m_cursor.original_col + 1);
+    return Cursor(m_cursor.row + 1, m_cursor.col + 1,
+                  m_cursor.original_col + 1);
 }
