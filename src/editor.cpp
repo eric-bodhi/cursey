@@ -94,7 +94,6 @@ std::string intToString(int value) {
 
 void Editor::execute(auto ftable, int key) {
     auto skey = intToString(key);
-    logger.log(skey);
     if (ftable.contains(skey)) {
         ftable.at(skey)(*this);
     }

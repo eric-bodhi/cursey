@@ -1,7 +1,6 @@
 f whatLine 23
 q4
 
-wha Line 26
 Line 27
 Line 28
 Line 29

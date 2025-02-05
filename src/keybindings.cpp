@@ -15,6 +15,8 @@ std::unordered_map<std::string_view, std::function<void(Editor&)>> normalkeys =
         {"l", [](Editor& editor) { editor.getCm().moveDir(Direction::Right); }},
         {"i", [](Editor& editor) { editor.setMode(Mode::Insert); }},
         {":", [](Editor& editor) { editor.setMode(Mode::Command); }},
+
+        {"dd", [](Editor& editor) { editor.getBuffer().deleteLine(editor.getCm()); }},
 };
 
 } // namespace Keybindings
