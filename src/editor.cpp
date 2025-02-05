@@ -10,7 +10,7 @@
 
 Editor::Editor(const std::string& filepath)
     : cursey(), buffer(filepath), viewport(cursey.get_terminal_size()),
-      cm(buffer, cursey.get_terminal_size().max_row), m_filepath(filepath) {
+      cm(buffer, cursey.get_terminal_size().max_row), m_filepath(filepath), shouldExit(false) {
 }
 
 void Editor::writeFile() {
@@ -28,11 +28,13 @@ void Editor::writeFile() {
     file.close();
 }
 
+void Editor::setMode(Mode mode) {
+    currMode = mode;
+}
+
 // returns shouldExit
-bool Editor::normalMode(int input) {
+void Editor::normalMode(int input) {
     switch (input) {
-    case 'q':
-        return true;
     case 'h':
         cm.moveDir(Direction::Left);
         break;
@@ -52,8 +54,6 @@ bool Editor::normalMode(int input) {
         currMode = Mode::Command;
         break;
     }
-
-    return false;
 }
 
 void Editor::insertMode(int input) {
@@ -99,6 +99,10 @@ CursorManager& Editor::getCm() {
     return cm;
 }
 
+void Editor::setShouldExit(bool value) {
+    shouldExit = value;
+}
+
 void Editor::updateView() {
     auto modelCursor = cm.get();
     viewport.adjustViewPort(modelCursor);
@@ -114,11 +118,17 @@ void Editor::execute(std::string_view command) {
 
 void Editor::run() {
     int input;
-    bool shouldExit = false;
 
     // Initial render
     updateView();
-
+    /*
+    Diff ftable for keybindings
+    int lastInput
+    check if lastinput & input are in keybinding ftable
+    or if input is in keybinding ftable
+    i.e. "dd", "x"
+    diff ftable for normal and visual
+    */
     while (!shouldExit) {
         switch (currMode) {
         case Mode::Normal:
@@ -133,7 +143,7 @@ void Editor::run() {
 
         switch (currMode) {
         case Mode::Normal:
-            shouldExit = normalMode(input);
+            normalMode(input);
             break;
 
         case Mode::Insert:
@@ -152,4 +162,8 @@ void Editor::run() {
         if (!shouldExit)
             updateView();
     }
+}
+
+void Editor::exit() {
+
 }

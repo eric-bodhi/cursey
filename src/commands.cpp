@@ -11,6 +11,12 @@ std::unordered_map<std::string_view, std::function<void(Editor&)>> ftable = {
             editor.writeFile();
         },
     },
+    {
+        "q",
+        [](Editor& editor) {
+            editor.setShouldExit(true);
+        }
+    }
 };
 
 } // namespace Command
