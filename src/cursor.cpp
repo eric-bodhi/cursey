@@ -37,7 +37,9 @@ void CursorManager::moveDir(Direction direction) {
         break;
 
     case Direction::Right:
-        if (m_cursor.col <= m_buffer.getLineLength(m_cursor.row)) {
+        // curr behavior is 'i' inserts at end of line
+        // vi behavior is 'i' inserts one before end of line
+        if (m_cursor.col < m_buffer.getLineLength(m_cursor.row)) {
             ++m_cursor.col;
             m_cursor.original_col = m_cursor.col;
         }

@@ -38,7 +38,6 @@ public:
     void writeFile();
 
     void run();
-    void exit();
 
     void execute(auto ftable, int key);
     void execute(auto ftable, std::string_view cmd);
@@ -47,4 +46,5 @@ public:
 
     TextBuffer& getBuffer();
     CursorManager& getCm();
+    Logger& getLogger();
 };

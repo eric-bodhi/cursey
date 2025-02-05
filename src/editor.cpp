@@ -76,6 +76,10 @@ CursorManager& Editor::getCm() {
     return cm;
 }
 
+Logger& Editor::getLogger() {
+    return logger;
+}
+
 void Editor::setShouldExit(bool value) {
     shouldExit = value;
 }
@@ -110,14 +114,7 @@ void Editor::run() {
     int lastInput = 0;
     // Initial render
     updateView();
-    /*
-    Diff ftable for keybindings
-    int lastInput
-    check if lastinput & input are in keybinding ftable
-    or if input is in keybinding ftable
-    i.e. "dd", "x"
-    diff ftable for normal and visual
-    */
+
     while (!shouldExit) {
         switch (currMode) {
         case Mode::Normal:
@@ -149,12 +146,6 @@ void Editor::run() {
             break;
         }
         lastInput = input;
-        // Always update view after processing input
-        if (!shouldExit)
-            updateView();
+        updateView();
     }
-}
-
-void Editor::exit() {
-
 }

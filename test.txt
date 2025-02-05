@@ -1,7 +1,3 @@
-f whatLine 23
-q4
-
-Line 27
 Line 28
 Line 29
 Line 30
