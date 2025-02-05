@@ -99,6 +99,18 @@ void TextBuffer::erase(const CursorManager& cm) {
     }
 }
 
+void TextBuffer::newLine(const CursorManager& cm) {
+    std::size_t lineIdx = cm.get().row;
+    auto line = getLine(lineIdx);
+    const std::string newLine = std::string(line.begin() + cm.get().col, line.end());
+    tblogger.log(newLine);
+    if (newLine.size() == 0) {
+        buffer.insert(buffer.begin() + lineIdx + 1, " ");
+    } else {
+        buffer.insert(buffer.begin() + lineIdx + 1, newLine);
+    }
+}
+
 void TextBuffer::deleteLine(const CursorManager& cm) {
     std::size_t lineIdx = cm.get().row;
     buffer.erase(buffer.begin() + lineIdx);

@@ -38,5 +38,7 @@ public:
 
     void erase(const CursorManager& cm);
 
+    // newLine at index cm.row + 1
+    void newLine(const CursorManager& cm);
     void deleteLine(const CursorManager& cm);
 };

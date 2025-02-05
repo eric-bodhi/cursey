@@ -49,7 +49,9 @@ void Editor::insertMode(int input) {
         break;
     case KEY_ENTER:
     case '\n':
-        // Handle newline insertion
+        buffer.newLine(cm);
+        cm.moveDir(Direction::Down);
+        buffer.moveCursor(cm);
         break;
     default:
         buffer.insert(cm, static_cast<char>(input));
