@@ -80,6 +80,10 @@ Logger& Editor::getLogger() {
     return logger;
 }
 
+const std::string& Editor::getFilePath() {
+    return m_filepath;
+}
+
 void Editor::setShouldExit(bool value) {
     shouldExit = value;
 }

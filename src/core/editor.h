@@ -47,4 +47,5 @@ public:
     TextBuffer& getBuffer();
     CursorManager& getCm();
     Logger& getLogger();
+    const std::string& getFilePath();
 };

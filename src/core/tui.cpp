@@ -8,20 +8,29 @@ Cursey::Cursey() {
     refresh();
 
     getmaxyx(stdscr, max_row, max_col);
-    main_win = newwin(max_row - 1, max_col, 0, 0);
+    main_win = newwin(max_row - 2, max_col, 0, 0);
+    tool_win = newwin(1, max_col, max_row - 2, 0);
     cmd_win = newwin(1, max_col, max_row - 1, 0);
 }
 
 Cursey::~Cursey() {
     delwin(main_win);
+    delwin(tool_win);
     delwin(cmd_win);
     endwin();
+}
+
+void Cursey::render_tool_line(const Cursor& cursor) {
+    wclear(tool_win);
+    const std::string cords = std::to_string(cursor.row) + "," + std::to_string(cursor.col);
+    // max_col - cords.size() ensures enough space for cords
+    mvwaddstr(tool_win, 0, max_col - cords.size(), cords.c_str());
+    wrefresh(tool_win);
 }
 
 void Cursey::render_file(const Cursor& cursor, const TextBuffer& buffer,
                          std::size_t view_offset) {
     wclear(main_win);
-
     // Render visible lines
     for (std::size_t i = 0; i < max_row - 1; i++) {
         if (i + view_offset >= buffer.lineCount())
@@ -30,6 +39,8 @@ void Cursey::render_file(const Cursor& cursor, const TextBuffer& buffer,
         const std::string line = buffer.getLine(i + view_offset);
         mvwaddnstr(main_win, i, 0, line.c_str(), max_col);
     }
+
+    render_tool_line(cursor);
 
     // Move physical cursor
     wmove(main_win, cursor.row - view_offset, cursor.col);
