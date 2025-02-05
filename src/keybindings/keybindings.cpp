@@ -29,7 +29,7 @@ std::unordered_map<std::string_view, std::function<void(Editor&)>> normalkeys =
          [](Editor& editor) {
              auto& cm = editor.getCm();
              auto cm_cursor = cm.get();
-            cm.moveDir(Direction::Right);
+             cm.moveDir(Direction::Right);
              editor.setMode(Mode::Insert);
          }},
         {":", [](Editor& editor) { editor.setMode(Mode::Command); }},

@@ -45,6 +45,9 @@ void Editor::insertMode(int input) {
         if (cm.get().col > 0) {
             buffer.erase(cm);
             cm.moveDir(Direction::Left);
+        } else {
+            buffer.deleteLine(cm);
+            cm.moveDir(Direction::Up);
         }
         break;
     case KEY_ENTER:

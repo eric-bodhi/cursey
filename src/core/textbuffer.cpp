@@ -102,12 +102,21 @@ void TextBuffer::erase(const CursorManager& cm) {
 void TextBuffer::newLine(const CursorManager& cm) {
     std::size_t lineIdx = cm.get().row;
     auto line = getLine(lineIdx);
-    const std::string newLine = std::string(line.begin() + cm.get().col, line.end());
-    tblogger.log(newLine);
+    const std::string newLine =
+        std::string(line.begin() + cm.get().col, line.end());
     if (newLine.size() == 0) {
         buffer.insert(buffer.begin() + lineIdx + 1, " ");
     } else {
         buffer.insert(buffer.begin() + lineIdx + 1, newLine);
+    }
+
+    // set line before accordingly
+    if (newLine.size() == line.size()) {
+        buffer.at(lineIdx) = " ";
+    } else {
+
+        buffer.at(lineIdx) =
+            std::string(line.begin(), line.begin() + cm.get().col);
     }
 }
 
@@ -116,8 +125,7 @@ void TextBuffer::deleteLine(const CursorManager& cm) {
     buffer.erase(buffer.begin() + lineIdx);
     if (lineIdx == 0 && lineCount() == 1) {
         buffer.insert(buffer.begin() + lineIdx, "");
-    }
-    else if (lineCount() - 1 == lineIdx && lineIdx != 0) {
+    } else if (lineCount() - 1 == lineIdx && lineIdx != 0) {
 
         switchLine(lineIdx - 1);
     }
