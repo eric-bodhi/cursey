@@ -1,6 +1,6 @@
-#include "src/editor.h"
-#include "src/log.h"
-#include "src/tui.h"
+#include "src/core/editor.h"
+#include "src/core/tui.h"
+#include "src/utils/log.h"
 #include <iostream>
 
 int main(int argc, char* argv[]) {

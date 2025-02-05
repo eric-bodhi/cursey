@@ -13,15 +13,15 @@ find_package(Curses REQUIRED)
 # Add the main executable target
 add_executable(main
   main.cpp
-  src/tui.cpp
-  src/textbuffer.cpp
-  src/editor.cpp
-  src/log.cpp
-  src/deque_gb.cpp
-  src/cursor.cpp
-  src/viewportmanager.cpp
-  src/commands.cpp
-  src/keybindings.cpp
+        src/core/tui.cpp
+        src/core/textbuffer.cpp
+        src/core/editor.cpp
+        src/utils/log.cpp
+        src/utils/deque_gb.cpp
+        src/core/cursor.cpp
+        src/core/viewportmanager.cpp
+        src/commands/commands.cpp
+        src/keybindings/keybindings.cpp
 )
 
 target_link_libraries(main PRIVATE ${CURSES_LIBRARIES})

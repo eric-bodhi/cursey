@@ -1,11 +1,11 @@
 #pragma once
 
-#include "deque_gb.h"
-#include "log.h"
+#include "../utils/deque_gb.h"
+#include "../utils/log.h"
+#include "cursor.h"
 #include <string>
 #include <variant>
 #include <vector>
-#include "cursor.h"
 
 // forward decl
 class CursorManager;

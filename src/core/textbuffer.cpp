@@ -1,5 +1,5 @@
 #include "textbuffer.h"
-#include "deque_gb.h"
+#include "../utils/deque_gb.h"
 #include <cmath>
 #include <fstream>
 #include <iostream>

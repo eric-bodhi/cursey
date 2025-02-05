@@ -1,5 +1,5 @@
 #include "cursor.h"
-#include "defs.h"
+#include "../defs.h"
 
 CursorManager::CursorManager(TextBuffer& buffer, std::size_t max_r,
                              const Cursor& argCursor)

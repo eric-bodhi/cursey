@@ -1,6 +1,6 @@
 #include "editor.h"
-#include "commands.h"
-#include "keybindings.h"
+#include "../commands/commands.h"
+#include "../keybindings/keybindings.h"
 #include "cursor.h"
 #include "textbuffer.h"
 #include "tui.h"

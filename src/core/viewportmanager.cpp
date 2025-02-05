@@ -1,5 +1,5 @@
 #include "viewportmanager.h"
-#include "defs.h"
+#include "../defs.h"
 #include "tui.h"
 #include <cstddef>
 

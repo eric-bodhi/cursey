@@ -1,5 +1,5 @@
 #include "keybindings.h"
-#include "editor.h"
+#include "../core/editor.h"
 #include <functional>
 
 namespace Keybindings {

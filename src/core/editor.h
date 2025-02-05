@@ -1,7 +1,7 @@
 #pragma once
 
+#include "../utils/log.h"
 #include "cursor.h"
-#include "log.h"
 #include "textbuffer.h"
 #include "tui.h"
 #include "viewportmanager.h"
