@@ -1,5 +1,6 @@
 #include "editor.h"
 #include "commands.h"
+#include "keybindings.h"
 #include "cursor.h"
 #include "textbuffer.h"
 #include "tui.h"
@@ -30,30 +31,6 @@ void Editor::writeFile() {
 
 void Editor::setMode(Mode mode) {
     currMode = mode;
-}
-
-// returns shouldExit
-void Editor::normalMode(int input) {
-    switch (input) {
-    case 'h':
-        cm.moveDir(Direction::Left);
-        break;
-    case 'j':
-        cm.moveDir(Direction::Down);
-        break;
-    case 'k':
-        cm.moveDir(Direction::Up);
-        break;
-    case 'l':
-        cm.moveDir(Direction::Right);
-        break;
-    case 'i':
-        currMode = Mode::Insert;
-        break;
-    case ':':
-        currMode = Mode::Command;
-        break;
-    }
 }
 
 void Editor::insertMode(int input) {
@@ -87,7 +64,7 @@ void Editor::commandMode() {
     wgetnstr(cursey.get_cmd_win(), cmd_buf, sizeof(cmd_buf));
     noecho();
 
-    execute(cmd_buf);
+    execute(Command::ftable, cmd_buf);
     currMode = Mode::Normal;
 }
 
@@ -110,15 +87,28 @@ void Editor::updateView() {
     cursey.render_file(screenCursor, buffer, viewport.getViewOffset());
 }
 
-void Editor::execute(std::string_view command) {
-    if (Command::ftable.contains(command)) {
-        Command::ftable.at(command)(*this);
+std::string intToString(int value) {
+    char c = value;
+    return std::string(1, c);
+}
+
+void Editor::execute(auto ftable, int key) {
+    auto skey = intToString(key);
+    logger.log(skey);
+    if (ftable.contains(skey)) {
+        ftable.at(skey)(*this);
+    }
+}
+
+void Editor::execute(auto ftable, std::string_view cmd) {
+    if (ftable.contains(cmd)) {
+        ftable.at(cmd)(*this);
     }
 }
 
 void Editor::run() {
     int input;
-
+    int lastInput = 0;
     // Initial render
     updateView();
     /*
@@ -138,12 +128,14 @@ void Editor::run() {
             break;
         case Mode::Command:
             input = 0; // Command mode uses line input
+            lastInput = 0;
             break;
         }
 
         switch (currMode) {
         case Mode::Normal:
-            normalMode(input);
+            execute(Keybindings::normalkeys, input);
+            execute(Keybindings::normalkeys, intToString(lastInput) + intToString(input));
             break;
 
         case Mode::Insert:
@@ -157,7 +149,7 @@ void Editor::run() {
         case Mode::Visual:
             break;
         }
-
+        lastInput = input;
         // Always update view after processing input
         if (!shouldExit)
             updateView();

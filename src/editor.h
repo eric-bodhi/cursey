@@ -32,7 +32,6 @@ public:
     // normal mode will interpret input char as switching to new mode etc
     void setMode(Mode mode);
     void setShouldExit(bool value);
-    void normalMode(int input);
     void insertMode(int input);
     void commandMode();
 
@@ -41,7 +40,8 @@ public:
     void run();
     void exit();
 
-    void execute(std::string_view command);
+    void execute(auto ftable, int key);
+    void execute(auto ftable, std::string_view cmd);
 
     void updateView();
 

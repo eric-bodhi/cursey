@@ -21,6 +21,7 @@ add_executable(main
   src/cursor.cpp
   src/viewportmanager.cpp
   src/commands.cpp
+  src/keybindings.cpp
 )
 
 target_link_libraries(main PRIVATE ${CURSES_LIBRARIES})
