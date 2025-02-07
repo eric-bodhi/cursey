@@ -154,6 +154,7 @@ void Editor::execute(auto ftable, std::string_view cmd) {
 void Editor::run() {
     int input;
     int lastInput = 0;
+    Mode lastMode = Mode::Normal;
     // Initial render
     updateView();
 
@@ -172,6 +173,7 @@ void Editor::run() {
 
         switch (currMode) {
         case Mode::Normal:
+            cursey.setCursorMode(CursorMode::Block);
             execute(Keybindings::normalkeys, input);
             execute(Keybindings::normalkeys,
                     intToString(lastInput) + intToString(input));
@@ -179,6 +181,7 @@ void Editor::run() {
 
         case Mode::Insert:
             insertMode(input);
+            cursey.setCursorMode(CursorMode::Bar);
             break;
 
         case Mode::Command:
@@ -189,6 +192,15 @@ void Editor::run() {
             break;
         }
         lastInput = input;
+        // slightly optimized cursor changing
+        if (currMode != lastMode) {
+            if (currMode == Mode::Insert) {
+                cursey.setCursorMode(CursorMode::Bar);
+            } else {
+                cursey.setCursorMode(CursorMode::Block);
+            }
+            lastMode = currMode;
+        }
         updateView();
     }
 }

@@ -18,3 +18,8 @@ enum class Direction {
     Left,
     Right,
 };
+
+enum class CursorMode {
+    Block,
+    Bar,
+};

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../defs.h"
 #include "cursor.h"
 #include "textbuffer.h"
 #include <ncurses.h>
@@ -29,4 +30,6 @@ public:
     TermBoundaries get_terminal_size();
 
     WINDOW* get_cmd_win();
+
+    void setCursorMode(CursorMode cursorMode);
 };

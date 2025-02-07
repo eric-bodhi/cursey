@@ -1,4 +1,6 @@
 #include "tui.h"
+#include <iostream>
+#include "../defs.h"
 #include <ncurses.h>
 
 Cursey::Cursey() {
@@ -72,4 +74,18 @@ TermBoundaries Cursey::get_terminal_size() {
 
 WINDOW* Cursey::get_cmd_win() {
     return cmd_win;
+}
+
+void Cursey::setCursorMode(CursorMode mode) {
+    switch (mode) {
+    case CursorMode::Block:
+        // For xterm: Block cursor (if supported)
+        printf("\033[2 q");
+        break;
+    case CursorMode::Bar:
+        // For xterm: Beam cursor (if supported)
+        printf("\033[6 q");
+        break;
+    }
+    fflush(stdout);
 }
