@@ -11,7 +11,8 @@
 
 Editor::Editor(const std::string& filepath)
     : cursey(), buffer(filepath), viewport(cursey.get_terminal_size()),
-      cm(buffer, cursey.get_terminal_size().max_row), m_filepath(filepath), shouldExit(false) {
+      cm(buffer, cursey.get_terminal_size().max_row), m_filepath(filepath),
+      shouldExit(false) {
 }
 
 void Editor::writeFile() {
@@ -63,12 +64,44 @@ void Editor::insertMode(int input) {
 }
 
 void Editor::commandMode() {
-    echo();
-    char cmd_buf[256];
-    cursey.render_command_line("");
-    wgetnstr(cursey.get_cmd_win(), cmd_buf, sizeof(cmd_buf));
     noecho();
 
+    char cmd_buf[256] = {0}; // Buffer to store the command
+    int pos = 0;             // Current position in the buffer
+
+    cursey.render_command_line("");
+
+    WINDOW* cmd_win = cursey.get_cmd_win();
+    wmove(cmd_win, 0, 0);
+
+    waddch(cmd_win, ':');
+    wrefresh(cmd_win);
+
+    int ch;
+    while ((ch = wgetch(cmd_win)) != '\n') {
+        if (ch == 27) { // ASCII 27 is the ESC key
+            currMode = Mode::Normal;
+            return;
+        }
+
+        if (ch == KEY_BACKSPACE || ch == 127) {
+            if (pos > 0) {
+                pos--;
+                cmd_buf[pos] = '\0';
+                int y, x;
+                getyx(cmd_win, y, x);
+                if (x > 1) {
+                    mvwdelch(cmd_win, y, x - 1);
+                }
+            }
+        } else if (pos < static_cast<int>(sizeof(cmd_buf)) - 1) {
+            cmd_buf[pos++] = ch;
+            waddch(cmd_win, ch);
+        }
+        wrefresh(cmd_win);
+    }
+
+    cmd_buf[pos] = '\0';
     execute(Command::ftable, cmd_buf);
     currMode = Mode::Normal;
 }
@@ -140,7 +173,8 @@ void Editor::run() {
         switch (currMode) {
         case Mode::Normal:
             execute(Keybindings::normalkeys, input);
-            execute(Keybindings::normalkeys, intToString(lastInput) + intToString(input));
+            execute(Keybindings::normalkeys,
+                    intToString(lastInput) + intToString(input));
             break;
 
         case Mode::Insert:

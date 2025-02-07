@@ -47,7 +47,7 @@ void Cursey::render_file(const Cursor& cursor, const TextBuffer& buffer,
             break;
 
         const std::string line = buffer.getLine(i + view_offset);
-        const std::string lineNumber = std::to_string(i);
+        const std::string lineNumber = std::to_string(i + 1);
         mvwaddstr(line_win, i, 3 - lineNumber.size(), lineNumber.c_str());
         mvwaddnstr(main_win, i, 0, line.c_str(), max_col);
     }
