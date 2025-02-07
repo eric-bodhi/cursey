@@ -1,37 +1,22 @@
-Line 28
-Line 29
-Line 30
-sLine 31
-Line 32
-Line 33
-Line 34
-Line 35
-Line 36
-Line 37
-Line 38
-Line 39
-Line 40
-Line 41
-Line 42
-Line 43
-Line 44
-Line 45
-Line 46
-Line 47
-Line 48
-Line 49
-Line 50
-Line 51
-Line 52
-Line 53
-Line 54
-Line 55
-Line 56
-Line 57
-Line 58
-Line 59
-Line 60
-Line 61
-Line 62
-Line 63
-Line 64
+void Cursey::render_file(const Cursor& cursor, const TextBuffer& buffer,
+                         std::size_t view_offset) {
+    wclear(main_win);
+    wclear(line_win);
+    // Render visible lines
+    for (std::size_t i = 0; i < max_row - 1; i++) {
+        if (i + view_offset >= buffer.lineCount())
+            break;
+
+        const std::string line = buffer.getLine(i + view_offset);
+        const std::string lineNumber = std::to_string(i);
+        mvwaddstr(line_win, i, 3 - lineNumber.size(), lineNumber.c_str());
+        mvwaddnstr(main_win, i, 0, line.c_str(), max_col);
+    }
+
+    render_tool_line(cursor);
+
+    // Move physical cursor
+    wmove(main_win, cursor.row - view_offset, cursor.col);
+    wrefresh(line_win);
+    wrefresh(main_win);
+}

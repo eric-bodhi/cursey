@@ -11,6 +11,7 @@ struct TermBoundaries {
 class Cursey {
 private:
     WINDOW* main_win;    // Main content window
+    WINDOW* line_win;    // Line number window
     WINDOW* tool_win;    // Tool line window
     WINDOW* cmd_win;     // Command line window
     std::size_t max_row; // Terminal dimensions

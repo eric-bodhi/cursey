@@ -114,7 +114,6 @@ void TextBuffer::newLine(const CursorManager& cm) {
     if (newLine.size() == line.size()) {
         buffer.at(lineIdx) = " ";
     } else {
-
         buffer.at(lineIdx) =
             std::string(line.begin(), line.begin() + cm.get().col);
     }
