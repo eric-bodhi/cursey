@@ -1,91 +1,147 @@
 #include "tui.h"
-#include <iostream>
 #include "../defs.h"
-#include <ncurses.h>
+#include <cstdio>
+#include <cstdlib>
+#include <string>
 
-Cursey::Cursey() {
-    initscr();            // Initialize ncurses
-    cbreak();             // Disable line buffering
-    noecho();             // Don't echo input
-    keypad(stdscr, TRUE); // Enable special keys
-    start_color();
-    refresh();
-
-    init_pair(1, COLOR_YELLOW, COLOR_BLACK); // line number colors
-    getmaxyx(stdscr, max_row, max_col);
-    main_win = newwin(max_row - 2, max_col, 0, 4);
-    line_win = newwin(max_row - 2, 4, 0, 0);
-    tool_win = newwin(1, max_col, max_row - 2, 0);
-    cmd_win = newwin(1, max_col, max_row - 1, 0);
-
-    wbkgd(line_win, COLOR_PAIR(1));
-    wclear(line_win);
-    wrefresh(line_win);
-}
-
-Cursey::~Cursey() {
-    delwin(main_win);
-    delwin(tool_win);
-    delwin(cmd_win);
-    endwin();
-}
-
-void Cursey::render_tool_line(const Cursor& cursor) {
-    wclear(tool_win);
-    const std::string cords =
-        std::to_string(cursor.row) + "," + std::to_string(cursor.col);
-    // max_col - cords.size() ensures enough space for cords
-    mvwaddstr(tool_win, 0, max_col - cords.size(), cords.c_str());
-    wrefresh(tool_win);
-}
-
-void Cursey::render_file(const Cursor& cursor, const TextBuffer& buffer,
-                         std::size_t view_offset) {
-    wclear(main_win);
-    wclear(line_win);
-    // Render visible lines
-    for (std::size_t i = 0; i < max_row - 1; i++) {
-        if (i + view_offset >= buffer.lineCount())
-            break;
-
-        const std::string line = buffer.getLine(i + view_offset);
-        const std::string lineNumber = std::to_string(i + 1);
-        mvwaddstr(line_win, i, 3 - lineNumber.size(), lineNumber.c_str());
-        mvwaddnstr(main_win, i, 0, line.c_str(), max_col);
+// Constructor: Initialize Notcurses and create the planes.
+NotcursesTUI::NotcursesTUI() {
+    notcurses_options opts = {};
+    nc = notcurses_init(&opts, stdout);
+    if (nc == nullptr) {
+        std::fprintf(stderr, "Error initializing Notcurses\n");
+        std::exit(EXIT_FAILURE);
     }
+    // Enable the hardware cursor
+    notcurses_cursor_enable(nc, 0, 4);
+    stdplane = notcurses_stdplane(nc);
 
+    // Retrieve dimensions as unsigned ints
+    unsigned int u_max_row = 0, u_max_col = 0;
+    ncplane_dim_yx(stdplane, &u_max_row, &u_max_col);
+    max_row = u_max_row;
+    max_col = u_max_col;
+
+    // Create the main plane (offset 4 columns for line numbers, leaving 2 rows
+    // at the bottom)
+    ncplane_options main_opts{};
+    main_opts.y = 0;
+    main_opts.x = 4;
+    main_opts.rows = max_row - 2; // using unsigned arithmetic
+    main_opts.cols = max_col - 4;
+    main_opts.userptr = nullptr;
+    main_opts.flags = 0;
+    main_plane = ncplane_create(stdplane, &main_opts);
+
+    // Create the line number plane (4 columns wide)
+    ncplane_options line_opts{};
+    line_opts.y = 0;
+    line_opts.x = 0;
+    line_opts.rows = max_row - 2;
+    line_opts.cols = 4;
+    line_opts.userptr = nullptr;
+    line_opts.flags = 0;
+    line_plane = ncplane_create(stdplane, &line_opts);
+
+    // Create the tool line plane (for status messages)
+    ncplane_options tool_opts{};
+    tool_opts.y = max_row - 2;
+    tool_opts.x = 0;
+    tool_opts.rows = 1;
+    tool_opts.cols = max_col;
+    tool_opts.userptr = nullptr;
+    tool_opts.flags = 0;
+    tool_plane = ncplane_create(stdplane, &tool_opts);
+
+    // Create the command line plane
+    ncplane_options cmd_opts{};
+    cmd_opts.y = max_row - 1;
+    cmd_opts.x = 0;
+    cmd_opts.rows = 1;
+    cmd_opts.cols = max_col;
+    cmd_opts.userptr = nullptr;
+    cmd_opts.flags = 0;
+    cmd_plane = ncplane_create(stdplane, &cmd_opts);
+}
+
+// Destructor: Shutdown Notcurses.
+NotcursesTUI::~NotcursesTUI() {
+    notcurses_stop(nc);
+}
+
+// Render the tool line, displaying (for example) the current cursor
+// coordinates.
+void NotcursesTUI::render_tool_line(const Cursor& cursor) {
+    ncplane_erase(tool_plane);
+    std::string cords =
+        std::to_string(cursor.row) + "," + std::to_string(cursor.col);
+    int x = static_cast<int>(max_col - cords.size());
+    // Use ncplane_printf_yx to print at row 0, column x
+    ncplane_printf_yx(tool_plane, 0, x, "%s", cords.c_str());
+    notcurses_render(nc);
+}
+
+// Render the file’s text from the TextBuffer onto the main and line planes.
+void NotcursesTUI::render_file(const Cursor& cursor, const TextBuffer& buffer,
+                               std::size_t view_offset) {
+    ncplane_erase(main_plane);
+    ncplane_erase(line_plane);
+
+    int available_rows = static_cast<int>(max_row - 2); // Main area rows
+    for (int i = 0; i < available_rows; ++i) {
+        std::size_t line_index = i + view_offset;
+        if (line_index >= buffer.lineCount())
+            break;
+        std::string line = buffer.getLine(line_index);
+        std::string lineNumber = std::to_string(line_index + 1);
+        // Print the line number; you can also use ncplane_printf_aligned if
+        // desired.
+        ncplane_printf_yx(line_plane, i, 0, "%s", lineNumber.c_str());
+        // Print the actual text onto the main_plane.
+        ncplane_printf_yx(main_plane, i, 0, "%s", line.c_str());
+    }
     render_tool_line(cursor);
 
-    // Move physical cursor
-    wmove(main_win, cursor.row - view_offset, cursor.col);
-    wrefresh(line_win);
-    wrefresh(main_win);
+    // Move the cursor on the main_plane (adjusting for the view offset)
+    int target_row = static_cast<int>(cursor.row - view_offset);
+    ncplane_cursor_move_yx(main_plane, target_row, cursor.col);
+    notcurses_render(nc);
 }
 
-void Cursey::render_command_line(const std::string& command) {
-    wclear(cmd_win);
-    mvwprintw(cmd_win, 0, 0, ":%s", command.c_str());
-    wrefresh(cmd_win);
+// Render a command prompt (for example, when entering “:w” or “:q”).
+void NotcursesTUI::render_command_line(const std::string& command) {
+    ncplane_erase(cmd_plane);
+    ncplane_printf_yx(cmd_plane, 0, 0, ":%s", command.c_str());
+    notcurses_render(nc);
 }
 
-TermBoundaries Cursey::get_terminal_size() {
-    return {max_row, max_col};
+// Return the terminal dimensions.
+TermBoundaries NotcursesTUI::get_terminal_size() {
+    return {static_cast<std::size_t>(max_row),
+            static_cast<std::size_t>(max_col)};
 }
 
-WINDOW* Cursey::get_cmd_win() {
-    return cmd_win;
+int NotcursesTUI::getch() {
+    ncinput ni;
+    // For blocking input, pass nullptr for the timespec.
+    uint32_t ret = notcurses_get(nc, nullptr, &ni);
+    if (ret == 0) {
+        return -1; // no input or error
+    }
+    // Return the input id from the ncinput structure.
+    return static_cast<int>(ni.id);
 }
 
-void Cursey::setCursorMode(CursorMode mode) {
+// Set the cursor mode. Notcurses does not offer a direct API for changing the
+// cursor shape, so we can fall back on ANSI escape sequences.
+void NotcursesTUI::setCursorMode(CursorMode mode) {
     switch (mode) {
     case CursorMode::Block:
-        // For xterm: Block cursor (if supported)
-        printf("\033[2 q");
+        std::printf("\033[2 q");
         break;
     case CursorMode::Bar:
-        // For xterm: Beam cursor (if supported)
-        printf("\033[6 q");
+        std::printf("\033[6 q");
         break;
     }
-    fflush(stdout);
+    std::fflush(stdout);
 }

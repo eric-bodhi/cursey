@@ -1,35 +1,43 @@
 #pragma once
 
+#include <notcurses/notcurses.h>
+#include <string>
 #include "../defs.h"
-#include "cursor.h"
 #include "textbuffer.h"
-#include <ncurses.h>
 
+// A simple struct to hold terminal dimensions.
 struct TermBoundaries {
-    std::size_t max_row, max_col;
+  std::size_t max_row;
+  std::size_t max_col;
 };
 
-class Cursey {
+class NotcursesTUI {
 private:
-    WINDOW* main_win;    // Main content window
-    WINDOW* line_win;    // Line number window
-    WINDOW* tool_win;    // Tool line window
-    WINDOW* cmd_win;     // Command line window
-    std::size_t max_row; // Terminal dimensions
-    std::size_t max_col;
+  struct notcurses* nc;
+  struct ncplane* stdplane;
+  struct ncplane* main_plane;  // Main content plane (formerly main_win)
+  struct ncplane* line_plane;  // Line number plane (formerly line_win)
+  struct ncplane* tool_plane;  // Tool line plane (formerly tool_win)
+  struct ncplane* cmd_plane;   // Command line plane (formerly cmd_win)
+  int max_row;
+  int max_col;
 
 public:
-    explicit Cursey();
-    ~Cursey();
+  NotcursesTUI();
+  ~NotcursesTUI();
 
-    void render_file(const Cursor& cursor, const TextBuffer& buffer,
-                     std::size_t view_offset);
-    void render_tool_line(const Cursor& cursor);
-    void render_command_line(const std::string& command);
-    void clear_screen();
-    TermBoundaries get_terminal_size();
+  // Renders the text file from the buffer with the given view offset.
+  void render_file(const Cursor& cursor, const TextBuffer& buffer, std::size_t view_offset);
+  // Renders the tool line (for status info like cursor position)
+  void render_tool_line(const Cursor& cursor);
+  // Renders a command line prompt with the given command string.
+  void render_command_line(const std::string& command);
 
-    WINDOW* get_cmd_win();
+  // Returns the terminal size.
+  TermBoundaries get_terminal_size();
+  // Returns a character from input (blocking).
+  int getch();
 
-    void setCursorMode(CursorMode cursorMode);
+  // Optionally set the cursor mode using ANSI escape sequences.
+  void setCursorMode(CursorMode mode);
 };

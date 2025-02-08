@@ -7,17 +7,24 @@
 #include <fstream>
 #include <iostream>
 #include <string>
-#include <unistd.h>
+
+// A helper to convert an integer key to a string.
+// (Alternatively, std::to_string could be used directly.)
+std::string intToString(int value) {
+    return std::to_string(value);
+}
 
 Editor::Editor(const std::string& filepath)
-    : cursey(), buffer(filepath), viewport(cursey.get_terminal_size()),
-      cm(buffer, cursey.get_terminal_size().max_row), m_filepath(filepath),
+    : tui(),
+      buffer(filepath),
+      viewport(tui.get_terminal_size()),
+      cm(buffer, tui.get_terminal_size().max_row),
+      m_filepath(filepath),
       shouldExit(false) {
 }
 
 void Editor::writeFile() {
-    std::ofstream file(m_filepath,
-                       std::ios::trunc); // `std::ios::trunc` clears the file
+    std::ofstream file(m_filepath, std::ios::trunc);
     if (!file.is_open()) {
         std::cerr << "Failed to open existing file: " << m_filepath << '\n';
         return;
@@ -26,7 +33,6 @@ void Editor::writeFile() {
     for (std::size_t i = 0; i < buffer.lineCount(); i++) {
         file << buffer.getLine(i) << '\n';
     }
-
     file.close();
 }
 
@@ -35,14 +41,14 @@ void Editor::setMode(Mode mode) {
 }
 
 void Editor::insertMode(int input) {
+    // For our Notcurses version, we assume input is an ASCII code.
     if (input == 27) { // ESC key
         currMode = Mode::Normal;
         return;
     }
 
-    // Handle special characters
     switch (input) {
-    case KEY_BACKSPACE:
+    case 127: // Backspace (typically 127)
         if (cm.get().col > 0) {
             buffer.erase(cm);
             cm.moveDir(Direction::Left);
@@ -51,8 +57,7 @@ void Editor::insertMode(int input) {
             cm.moveDir(Direction::Up);
         }
         break;
-    case KEY_ENTER:
-    case '\n':
+    case '\n': // Enter key
         buffer.newLine(cm);
         cm.moveDir(Direction::Down);
         buffer.moveCursor(cm);
@@ -64,45 +69,27 @@ void Editor::insertMode(int input) {
 }
 
 void Editor::commandMode() {
-    noecho();
-
-    char cmd_buf[256] = {0}; // Buffer to store the command
-    int pos = 0;             // Current position in the buffer
-
-    cursey.render_command_line("");
-
-    WINDOW* cmd_win = cursey.get_cmd_win();
-    wmove(cmd_win, 0, 0);
-
-    waddch(cmd_win, ':');
-    wrefresh(cmd_win);
+    // Use a simple loop with NotcursesTUI::getch() to collect a command.
+    std::string cmd;
+    tui.render_command_line(""); // Clear prompt
 
     int ch;
-    while ((ch = wgetch(cmd_win)) != '\n') {
-        if (ch == 27) { // ASCII 27 is the ESC key
+    while ((ch = tui.getch()) != '\n') {
+        if (ch == 27) { // ESC key
             currMode = Mode::Normal;
             return;
-        }
-
-        if (ch == KEY_BACKSPACE || ch == 127) {
-            if (pos > 0) {
-                pos--;
-                cmd_buf[pos] = '\0';
-                int y, x;
-                getyx(cmd_win, y, x);
-                if (x > 1) {
-                    mvwdelch(cmd_win, y, x - 1);
-                }
+        } else if (ch == 127) { // Backspace
+            if (!cmd.empty()) {
+                cmd.pop_back();
             }
-        } else if (pos < static_cast<int>(sizeof(cmd_buf)) - 1) {
-            cmd_buf[pos++] = ch;
-            waddch(cmd_win, ch);
+        } else {
+            cmd.push_back(static_cast<char>(ch));
         }
-        wrefresh(cmd_win);
+        // Update the command prompt (prefix with ':' as in vim)
+        tui.render_command_line(":" + cmd);
     }
-
-    cmd_buf[pos] = '\0';
-    execute(Command::ftable, cmd_buf);
+    // Execute the command if found in our command table.
+    execute(Command::ftable, cmd);
     currMode = Mode::Normal;
 }
 
@@ -130,12 +117,7 @@ void Editor::updateView() {
     auto modelCursor = cm.get();
     viewport.adjustViewPort(modelCursor);
     auto screenCursor = viewport.modelToScreen(modelCursor);
-    cursey.render_file(screenCursor, buffer, viewport.getViewOffset());
-}
-
-std::string intToString(int value) {
-    char c = value;
-    return std::string(1, c);
+    tui.render_file(screenCursor, buffer, viewport.getViewOffset());
 }
 
 void Editor::execute(auto ftable, int key) {
@@ -155,7 +137,7 @@ void Editor::run() {
     int input;
     int lastInput = 0;
     Mode lastMode = Mode::Normal;
-    // Initial render
+    // Initial render.
     updateView();
 
     while (!shouldExit) {
@@ -163,41 +145,38 @@ void Editor::run() {
         case Mode::Normal:
         case Mode::Insert:
         case Mode::Visual:
-            input = getch(); // Get single character input
+            input = tui.getch(); // Use NotcursesTUI’s blocking input
             break;
         case Mode::Command:
-            input = 0; // Command mode uses line input
+            input = 0; // Command mode uses its own input loop.
             lastInput = 0;
             break;
         }
 
         switch (currMode) {
         case Mode::Normal:
-            cursey.setCursorMode(CursorMode::Block);
+            tui.setCursorMode(CursorMode::Block);
             execute(Keybindings::normalkeys, input);
-            execute(Keybindings::normalkeys,
-                    intToString(lastInput) + intToString(input));
+            execute(Keybindings::normalkeys, intToString(lastInput) + intToString(input));
             break;
-
         case Mode::Insert:
             insertMode(input);
-            cursey.setCursorMode(CursorMode::Bar);
+            tui.setCursorMode(CursorMode::Bar);
             break;
-
         case Mode::Command:
-            commandMode(); // Handles its own input loop
+            commandMode();
             break;
-
         case Mode::Visual:
+            // Visual mode handling could be added here.
             break;
         }
         lastInput = input;
-        // slightly optimized cursor changing
+        // Update the cursor shape if the mode has changed.
         if (currMode != lastMode) {
             if (currMode == Mode::Insert) {
-                cursey.setCursorMode(CursorMode::Bar);
+                tui.setCursorMode(CursorMode::Bar);
             } else {
-                cursey.setCursorMode(CursorMode::Block);
+                tui.setCursorMode(CursorMode::Block);
             }
             lastMode = currMode;
         }
