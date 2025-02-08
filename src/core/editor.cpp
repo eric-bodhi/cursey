@@ -11,7 +11,7 @@
 // A helper to convert an integer key to a string.
 // (Alternatively, std::to_string could be used directly.)
 std::string intToString(int value) {
-    return std::to_string(value);
+    return std::string(1, static_cast<char>(value));
 }
 
 Editor::Editor(const std::string& filepath)

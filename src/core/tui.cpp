@@ -2,6 +2,7 @@
 #include "../defs.h"
 #include <cstdio>
 #include <cstdlib>
+#include <notcurses/notcurses.h>
 #include <string>
 
 // Constructor: Initialize Notcurses and create the planes.
@@ -105,6 +106,7 @@ void NotcursesTUI::render_file(const Cursor& cursor, const TextBuffer& buffer,
     // Move the cursor on the main_plane (adjusting for the view offset)
     int target_row = static_cast<int>(cursor.row - view_offset);
     ncplane_cursor_move_yx(main_plane, target_row, cursor.col);
+    notcurses_cursor_enable(nc, cursor.row, cursor.col + 4);
     notcurses_render(nc);
 }
 
