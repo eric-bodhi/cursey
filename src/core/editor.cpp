@@ -15,11 +15,8 @@ std::string intToString(int value) {
 }
 
 Editor::Editor(const std::string& filepath)
-    : tui(),
-      buffer(filepath),
-      viewport(tui.get_terminal_size()),
-      cm(buffer, tui.get_terminal_size().max_row),
-      m_filepath(filepath),
+    : tui(), buffer(filepath), viewport(tui.get_terminal_size()),
+      cm(buffer, tui.get_terminal_size().max_row), m_filepath(filepath),
       shouldExit(false) {
 }
 
@@ -42,13 +39,13 @@ void Editor::setMode(Mode mode) {
 
 void Editor::insertMode(int input) {
     // For our Notcurses version, we assume input is an ASCII code.
-    if (input == 27) { // ESC key
+    if (input == NCKEY_ESC) { // ESC key
         currMode = Mode::Normal;
         return;
     }
 
     switch (input) {
-    case 127: // Backspace (typically 127)
+    case NCKEY_BACKSPACE: // Backspace (typically 127)
         if (cm.get().col > 0) {
             buffer.erase(cm);
             cm.moveDir(Direction::Left);
@@ -57,7 +54,7 @@ void Editor::insertMode(int input) {
             cm.moveDir(Direction::Up);
         }
         break;
-    case '\n': // Enter key
+    case NCKEY_ENTER: // Enter key
         buffer.newLine(cm);
         cm.moveDir(Direction::Down);
         buffer.moveCursor(cm);
@@ -74,21 +71,22 @@ void Editor::commandMode() {
     tui.render_command_line(""); // Clear prompt
 
     int ch;
-    while ((ch = tui.getch()) != '\n') {
-        if (ch == 27) { // ESC key
+    while ((ch = tui.getch()) != NCKEY_ENTER) {
+        logger.log(std::to_string(ch));
+        if (ch == NCKEY_ESC) { // ESC key
             currMode = Mode::Normal;
             return;
-        } else if (ch == 127) { // Backspace
-            if (!cmd.empty()) {
-                cmd.pop_back();
+        } else if (ch == NCKEY_BACKSPACE) { // Backspace
+            if (cmd.empty()) {
+                currMode = Mode::Normal;
+                return;
             }
+            cmd.pop_back();
         } else {
             cmd.push_back(static_cast<char>(ch));
         }
-        // Update the command prompt (prefix with ':' as in vim)
-        tui.render_command_line(":" + cmd);
+        tui.render_command_line(cmd);
     }
-    // Execute the command if found in our command table.
     execute(Command::ftable, cmd);
     currMode = Mode::Normal;
 }
@@ -120,17 +118,14 @@ void Editor::updateView() {
     tui.render_file(screenCursor, buffer, viewport.getViewOffset());
 }
 
-void Editor::execute(auto ftable, int key) {
-    auto skey = intToString(key);
-    if (ftable.contains(skey)) {
-        ftable.at(skey)(*this);
+bool Editor::execute(const std::unordered_map<
+                         std::string_view, std::function<void(Editor&)>>& table,
+                     std::string_view cmd) {
+    if (table.contains(cmd)) {
+        table.at(cmd)(*this);
+        return true;
     }
-}
-
-void Editor::execute(auto ftable, std::string_view cmd) {
-    if (ftable.contains(cmd)) {
-        ftable.at(cmd)(*this);
-    }
+    return false;
 }
 
 void Editor::run() {
@@ -156,8 +151,10 @@ void Editor::run() {
         switch (currMode) {
         case Mode::Normal:
             tui.setCursorMode(CursorMode::Block);
-            execute(Keybindings::normalkeys, input);
-            execute(Keybindings::normalkeys, intToString(lastInput) + intToString(input));
+            if (!execute(Keybindings::normalkeys, intToString(input))) {
+                execute(Keybindings::normalkeys,
+                        intToString(lastInput) + intToString(input));
+            }
             break;
         case Mode::Insert:
             insertMode(input);
