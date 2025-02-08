@@ -17,6 +17,9 @@ NotcursesTUI::NotcursesTUI() {
     // Enable the hardware cursor
     notcurses_cursor_enable(nc, 0, 4);
     stdplane = notcurses_stdplane(nc);
+    uint64_t std_channel = 0;
+    ncchannels_set_bg_rgb(&std_channel, 0x282C34);
+    ncplane_set_base(stdplane, " ", 0, std_channel);
 
     // Retrieve dimensions as unsigned ints
     unsigned int u_max_row = 0, u_max_col = 0;
@@ -35,6 +38,10 @@ NotcursesTUI::NotcursesTUI() {
     main_opts.userptr = nullptr;
     main_opts.flags = 0;
     main_plane = ncplane_create(stdplane, &main_opts);
+    uint64_t main_channel = 0;
+    ncchannels_set_bg_rgb(&main_channel, 0x282C34);
+    ncchannels_set_fg_rgb(&main_channel, 0xABB2BF);
+    ncplane_set_base(main_plane, " ", 0, main_channel);
 
     // Create the line number plane (4 columns wide)
     ncplane_options line_opts{};
@@ -46,7 +53,8 @@ NotcursesTUI::NotcursesTUI() {
     line_opts.flags = 0;
     line_plane = ncplane_create(stdplane, &line_opts);
     uint64_t line_number_channel = 0;
-    ncchannels_set_fg_rgb(&line_number_channel, 0xFFFF00);
+    ncchannels_set_bg_rgb(&line_number_channel, 0x282C34);
+    ncchannels_set_fg_rgb(&line_number_channel, 0x5C6370);
     ncplane_set_base(line_plane, " ", 0, line_number_channel);
 
     // Create the tool line plane (for status messages)
@@ -58,6 +66,9 @@ NotcursesTUI::NotcursesTUI() {
     tool_opts.userptr = nullptr;
     tool_opts.flags = 0;
     tool_plane = ncplane_create(stdplane, &tool_opts);
+    uint64_t tool_channel = 0;
+    ncchannels_set_bg_rgb(&tool_channel, 0x282C34);
+    ncplane_set_base(tool_plane, " ", 0, tool_channel);
 
     // Create the command line plane
     ncplane_options cmd_opts{};
@@ -68,6 +79,9 @@ NotcursesTUI::NotcursesTUI() {
     cmd_opts.userptr = nullptr;
     cmd_opts.flags = 0;
     cmd_plane = ncplane_create(stdplane, &cmd_opts);
+    uint64_t cmd_channel = 0;
+    ncchannels_set_bg_rgb(&cmd_channel, 0x282C34);
+    ncplane_set_base(cmd_plane, " ", 0, cmd_channel);
 }
 
 // Destructor: Shutdown Notcurses.
@@ -80,20 +94,19 @@ NotcursesTUI::~NotcursesTUI() {
 void NotcursesTUI::resize(const std::size_t line_count) {
     // length of the max line number. e.g. 100 = 3
     const std::size_t line_number_length = trunc(std::log10(line_count)) + 1;
-    if (line_number_length == max_line_col) { // no difference in line number lengths
+    if (line_number_length ==
+        max_line_col) { // no difference in line number lengths
         return;
     }
 
-    ncplane_resize(line_plane,
-                   0, 0, // preserve from (0,0) in the old plane
-                   max_row - 2, max_col - line_number_length, // preserve full content
-                   0, 0, // place it at 0, 0
+    ncplane_resize(line_plane, 0, 0, // preserve from (0,0) in the old plane
+                   max_row - 2,
+                   max_col - line_number_length,     // preserve full content
+                   0, 0,                             // place it at 0, 0
                    max_row - 2, line_number_length); // new dimensions
 
-    ncplane_resize(main_plane,
-                   0, max_line_col,
-                   max_row - 2, max_col - line_number_length,
-                   0, line_number_length,
+    ncplane_resize(main_plane, 0, max_line_col, max_row - 2,
+                   max_col - line_number_length, 0, line_number_length,
                    max_row - 2, max_col - line_number_length);
     max_line_col = line_number_length;
 }
