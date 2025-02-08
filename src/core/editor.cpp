@@ -7,6 +7,7 @@
 #include <fstream>
 #include <iostream>
 #include <string>
+#include <notcurses/notcurses.h>
 
 // A helper to convert an integer key to a string.
 // (Alternatively, std::to_string could be used directly.)
@@ -15,7 +16,7 @@ std::string intToString(int value) {
 }
 
 Editor::Editor(const std::string& filepath)
-    : tui(), buffer(filepath), viewport({0, 0}),
+    : tui(buffer), buffer(filepath), viewport({0, 0}),
       cm(buffer, tui.get_terminal_size().max_row), m_filepath(filepath),
       shouldExit(false) {
       TermBoundaries full = tui.get_terminal_size();
