@@ -43,6 +43,9 @@ NotcursesTUI::NotcursesTUI() {
     line_opts.userptr = nullptr;
     line_opts.flags = 0;
     line_plane = ncplane_create(stdplane, &line_opts);
+    uint64_t line_number_channel = 0;
+    ncchannels_set_fg_rgb(&line_number_channel, 0xFFFF00);
+    ncplane_set_base(line_plane, " ", 0, line_number_channel);
 
     // Create the tool line plane (for status messages)
     ncplane_options tool_opts{};
@@ -88,20 +91,17 @@ void NotcursesTUI::render_file(const Cursor& cursor, const TextBuffer& buffer,
     ncplane_erase(main_plane);
     ncplane_erase(line_plane);
 
-    int available_rows = static_cast<int>(max_row - 2); // Main area rows
-    for (int i = 0; i < available_rows; ++i) {
+    for (int i = 0; i < max_row - 2; ++i) {
         std::size_t line_index = i + view_offset;
         if (line_index >= buffer.lineCount())
             break;
         std::string line = buffer.getLine(line_index);
         std::string lineNumber = std::to_string(line_index + 1);
-        // Print the line number; you can also use ncplane_printf_aligned if
-        // desired.
+        logger.log(lineNumber + " " + line);
         ncplane_printf_yx(line_plane, i, 0, "%s", lineNumber.c_str());
-        // Print the actual text onto the main_plane.
         ncplane_printf_yx(main_plane, i, 0, "%s", line.c_str());
     }
-    render_tool_line(cursor);
+    //render_tool_line(cursor);
 
     // Move the cursor on the main_plane (adjusting for the view offset)
     int target_row = static_cast<int>(cursor.row - view_offset);

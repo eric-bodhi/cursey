@@ -3,7 +3,7 @@
 
 CursorManager::CursorManager(TextBuffer& buffer, std::size_t max_r,
                              const Cursor& argCursor)
-    : m_buffer(buffer), max_row(max_r), m_cursor(argCursor) {};
+    : m_buffer(buffer), max_row(max_r), m_cursor(argCursor){};
 
 void CursorManager::moveDir(Direction direction) {
     switch (direction) {

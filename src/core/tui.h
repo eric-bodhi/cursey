@@ -15,12 +15,13 @@ class NotcursesTUI {
 private:
   struct notcurses* nc;
   struct ncplane* stdplane;
-  struct ncplane* main_plane;  // Main content plane (formerly main_win)
-  struct ncplane* line_plane;  // Line number plane (formerly line_win)
-  struct ncplane* tool_plane;  // Tool line plane (formerly tool_win)
-  struct ncplane* cmd_plane;   // Command line plane (formerly cmd_win)
+  struct ncplane* main_plane;  // Main content plane
+  struct ncplane* line_plane;  // Line number plane
+  struct ncplane* tool_plane;  // Tool line plane
+  struct ncplane* cmd_plane;   // Command line plane
   int max_row;
   int max_col;
+  Logger logger = Logger("../logfile.txt");
 
 public:
   NotcursesTUI();

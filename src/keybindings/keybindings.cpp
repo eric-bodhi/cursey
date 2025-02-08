@@ -36,6 +36,13 @@ std::unordered_map<std::string_view, std::function<void(Editor&)>> normalkeys =
 
         {"dd",
          [](Editor& editor) { editor.getBuffer().deleteLine(editor.getCm()); }},
-};
 
+        {"G",
+         [](Editor& editor) {
+             auto& tb = editor.getBuffer();
+             // length is 1 idx, position is 0 idx
+             editor.getCm().moveAbs({tb.lineCount() - 1, 0});
+         }},
+        {"gg", [](Editor& editor) { editor.getCm().moveAbs({0, 0}); }},
+};
 } // namespace Keybindings

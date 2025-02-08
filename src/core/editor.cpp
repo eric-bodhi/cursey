@@ -15,9 +15,12 @@ std::string intToString(int value) {
 }
 
 Editor::Editor(const std::string& filepath)
-    : tui(), buffer(filepath), viewport(tui.get_terminal_size()),
+    : tui(), buffer(filepath), viewport({0, 0}),
       cm(buffer, tui.get_terminal_size().max_row), m_filepath(filepath),
       shouldExit(false) {
+      TermBoundaries full = tui.get_terminal_size();
+      TermBoundaries textBounds{ full.max_row - 2, full.max_col };
+      viewport = ViewportManager(textBounds);
 }
 
 void Editor::writeFile() {
