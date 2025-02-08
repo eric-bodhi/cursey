@@ -9,11 +9,13 @@ ViewportManager::ViewportManager(TermBoundaries boundaries)
 }
 
 Cursor ViewportManager::modelToScreen(const Cursor& modelPos) const {
-    return Cursor{modelPos.row - view_offset, modelPos.col, modelPos.original_col};
+    return Cursor{modelPos.row - view_offset, modelPos.col,
+                  modelPos.original_col};
 }
 
 Cursor ViewportManager::screenToModel(const Cursor& screenPos) const {
-    return Cursor{screenPos.row + view_offset, screenPos.col, screenPos.original_col};
+    return Cursor{screenPos.row + view_offset, screenPos.col,
+                  screenPos.original_col};
 }
 
 bool ViewportManager::isVisible(const Cursor& modelPos) const {
