@@ -2,10 +2,13 @@
 
 #include "../utils/log.h"
 #include "cursor.h"
+#include "editor.h"
 #include "textbuffer.h"
 #include "tui.h"
 #include "viewportmanager.h"
+#include <functional>
 #include <string>
+#include <unordered_map>
 
 enum class Mode {
     Normal,
@@ -18,7 +21,7 @@ class Editor {
 private:
     Mode currMode = Mode::Normal;
     Logger logger = Logger("../logfile.txt");
-    Cursey cursey;
+    NotcursesTUI tui; // Use NotcursesTUI instead of Cursey
     CursorManager cm;
     ViewportManager viewport;
     TextBuffer buffer;
@@ -28,8 +31,7 @@ private:
 public:
     explicit Editor(const std::string& filepath);
 
-    // TODO: Each respective mode will handle what happens in that given mode
-    // normal mode will interpret input char as switching to new mode etc
+    // Mode-handling methods:
     void setMode(Mode mode);
     void setShouldExit(bool value);
     void insertMode(int input);
@@ -39,9 +41,9 @@ public:
 
     void run();
 
-    void execute(auto ftable, int key);
-    void execute(auto ftable, std::string_view cmd);
-
+    bool execute(const std::unordered_map<std::string_view,
+                                          std::function<void(Editor&)>>& table,
+                 std::string_view cmd);
     void updateView();
 
     TextBuffer& getBuffer();
