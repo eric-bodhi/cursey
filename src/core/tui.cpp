@@ -1,5 +1,6 @@
 #include "tui.h"
 #include "../defs.h"
+#include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <notcurses/notcurses.h>
@@ -22,14 +23,15 @@ NotcursesTUI::NotcursesTUI() {
     ncplane_dim_yx(stdplane, &u_max_row, &u_max_col);
     max_row = u_max_row;
     max_col = u_max_col;
+    max_line_col = 4;
 
     // Create the main plane (offset 4 columns for line numbers, leaving 2 rows
     // at the bottom)
     ncplane_options main_opts{};
     main_opts.y = 0;
-    main_opts.x = 4;
-    main_opts.rows = max_row - 2; // using unsigned arithmetic
-    main_opts.cols = max_col - 4;
+    main_opts.x = max_line_col;
+    main_opts.rows = max_row - 2;
+    main_opts.cols = max_col - max_line_col;
     main_opts.userptr = nullptr;
     main_opts.flags = 0;
     main_plane = ncplane_create(stdplane, &main_opts);
@@ -39,7 +41,7 @@ NotcursesTUI::NotcursesTUI() {
     line_opts.y = 0;
     line_opts.x = 0;
     line_opts.rows = max_row - 2;
-    line_opts.cols = 4;
+    line_opts.cols = max_line_col;
     line_opts.userptr = nullptr;
     line_opts.flags = 0;
     line_plane = ncplane_create(stdplane, &line_opts);
@@ -73,6 +75,29 @@ NotcursesTUI::~NotcursesTUI() {
     notcurses_stop(nc);
 }
 
+// Resize planes according to file length
+// Longer the line number = more horizontal space for line plane
+void NotcursesTUI::resize(const std::size_t line_count) {
+    // length of the max line number. e.g. 100 = 3
+    const std::size_t line_number_length = trunc(std::log10(line_count)) + 1;
+    if (line_number_length == max_line_col) { // no difference in line number lengths
+        return;
+    }
+
+    ncplane_resize(line_plane,
+                   0, 0, // preserve from (0,0) in the old plane
+                   max_row - 2, max_col - line_number_length, // preserve full content
+                   0, 0, // place it at 0, 0
+                   max_row - 2, line_number_length); // new dimensions
+
+    ncplane_resize(main_plane,
+                   0, max_line_col,
+                   max_row - 2, max_col - line_number_length,
+                   0, line_number_length,
+                   max_row - 2, max_col - line_number_length);
+    max_line_col = line_number_length;
+}
+
 // Render the tool line, displaying (for example) the current cursor
 // coordinates.
 void NotcursesTUI::render_tool_line(const Cursor& cursor) {
@@ -90,7 +115,7 @@ void NotcursesTUI::render_file(const Cursor& cursor, const TextBuffer& buffer,
                                std::size_t view_offset) {
     ncplane_erase(main_plane);
     ncplane_erase(line_plane);
-
+    resize(buffer.lineCount());
     for (int i = 0; i < max_row - 2; ++i) {
         std::size_t line_index = i + view_offset;
         if (line_index >= buffer.lineCount())
