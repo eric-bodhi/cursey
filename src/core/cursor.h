@@ -17,6 +17,7 @@ private:
     Cursor m_cursor;
     TextBuffer& m_buffer; // Reference to Editor's Textbuffer
     size_t max_row;       // Max Visible rows on screen
+    Logger logger = Logger("../logfile.txt");
 
 public:
     CursorManager(TextBuffer& buffer, std::size_t max_r,
