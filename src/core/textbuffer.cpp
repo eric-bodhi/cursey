@@ -9,6 +9,15 @@
 TextBuffer::TextBuffer(const std::string& filepath) {
     loadFile(filepath);
     buffer.at(0) = Gb(getLine(0));
+
+    // populate unwritten buffer
+    for (const auto& line : buffer) {
+        if (std::holds_alternative<std::string>(line)) {
+            originalBuffer.push_back(std::get<std::string>(line));
+        } else {
+            originalBuffer.push_back(std::get<Gb>(line).to_string());
+        }
+    }
 }
 
 bool TextBuffer::loadFile(const std::string& filepath) {
@@ -28,6 +37,18 @@ bool TextBuffer::loadFile(const std::string& filepath) {
 
     file.close();
     return true;
+}
+
+void TextBuffer::revertBuffer(std::vector<std::string> newBuffer) {
+    buffer.clear();
+    for (const auto& line : newBuffer) {
+        buffer.push_back(line);
+    }
+    buffer.at(0) = Gb(getLine(0));
+}
+
+void TextBuffer::revertBuffer() {
+    revertBuffer(originalBuffer);
 }
 
 std::size_t TextBuffer::lineCount() const {
