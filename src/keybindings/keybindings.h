@@ -8,4 +8,5 @@
 namespace Keybindings {
     //...
     extern std::unordered_map<std::string_view, std::function<void(Editor&)>> normalkeys;
+    extern std::unordered_map<std::string_view, std::function<void(Editor&)>> visualkeys;
 }

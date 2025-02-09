@@ -102,12 +102,11 @@ void NotcursesTUI::resize(std::size_t line_count) {
 }
 
 void NotcursesTUI::render_file(const Cursor& cursor, const TextBuffer& buffer,
-                               std::size_t view_offset) {
+                               std::size_t view_offset,
+                               const std::optional<Cursor>& visual_start,
+                               const std::optional<Cursor>& visual_end) {
     ncplane_erase(main_plane);
     ncplane_erase(line_plane);
-
-    logger.log(std::to_string(max_line_col) + " " +
-               std::to_string(line_number_length));
     resize(buffer.lineCount());
     for (std::size_t i = 0; i < max_row - 2; ++i) {
         const std::size_t line_index = i + view_offset;
@@ -125,9 +124,54 @@ void NotcursesTUI::render_file(const Cursor& cursor, const TextBuffer& buffer,
         std::string line_text = buffer.getLine(line_index);
         ncplane_printf_yx(main_plane, static_cast<int>(i), 0, "%s",
                           line_text.c_str());
+
+        for (std::size_t col = 0; col < line_text.size(); ++col) {
+            char c = line_text[col];
+            bool selected = false;
+
+            if (visual_start && visual_end) {
+                Cursor actual_start = *visual_start;
+                Cursor actual_end = *visual_end;
+
+                // Ensure start is before end
+                if (actual_start.row > actual_end.row ||
+                    (actual_start.row == actual_end.row &&
+                     actual_start.col > actual_end.col)) {
+                    std::swap(actual_start, actual_end);
+                }
+
+                if (line_index >= actual_start.row &&
+                    line_index <= actual_end.row) {
+                    if (actual_start.row == actual_end.row) {
+                        selected =
+                            (col >= actual_start.col && col <= actual_end.col);
+                    } else {
+                        if (line_index == actual_start.row) {
+                            selected = (col >= actual_start.col);
+                        } else if (line_index == actual_end.row) {
+                            selected = (col <= actual_end.col);
+                        } else {
+                            selected = true;
+                        }
+                    }
+                }
+            }
+
+            nccell ccell = {};
+            ccell.gcluster = c;
+            if (selected) {
+                ncchannels_set_bg_rgb(&ccell.channels,
+                                      0x666666); // Gray background
+            } else {
+                // Use default background
+                uint64_t main_channel = 0;
+                ncchannels_set_bg_rgb(&main_channel, 0xADD8E6);
+                ccell.channels = main_channel;
+            }
+            ncplane_putc_yx(main_plane, i, col, &ccell);
+        }
     }
 
-    // Set cursor position
     const int cursor_row = static_cast<int>(cursor.row);
     const int cursor_col = static_cast<int>(cursor.col);
     ncplane_cursor_move_yx(main_plane, cursor_row, cursor_col);

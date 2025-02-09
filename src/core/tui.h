@@ -2,9 +2,10 @@
 
 #include "../defs.h"
 #include "textbuffer.h"
+#include <cmath>
 #include <notcurses/notcurses.h>
 #include <string>
-#include <cmath>
+#include <optional>
 
 struct TermBoundaries {
     std::size_t max_row;
@@ -35,7 +36,10 @@ public:
     ~NotcursesTUI();
 
     void resize(std::size_t line_count);
-    void render_file(const Cursor& cursor, const TextBuffer& buffer, std::size_t view_offset);
+    void render_file(const Cursor& cursor, const TextBuffer& buffer,
+                     std::size_t view_offset,
+                     const std::optional<Cursor>& visual_start,
+                     const std::optional<Cursor>& visual_end);
     void render_tool_line(const Cursor& cursor, const bool& wasModified);
     void render_command_line(const std::string& command);
     void render_message(const std::string& message);

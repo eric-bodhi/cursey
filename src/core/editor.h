@@ -9,6 +9,7 @@
 #include <functional>
 #include <string>
 #include <unordered_map>
+#include <optional>
 
 enum class Mode {
     Normal,
@@ -28,12 +29,16 @@ private:
     std::string m_filepath;
     bool shouldExit;
 
+    std::optional<Cursor> m_visual_start;
+    std::optional<Cursor> m_visual_end;
+
 public:
     explicit Editor(const std::string& filepath);
 
     // Mode-handling methods:
     void setMode(Mode mode);
     void setShouldExit(bool value);
+    void setVisualEnd(const Cursor& cursor);
     void insertMode(int input);
     void commandMode();
 

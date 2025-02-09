@@ -4,9 +4,8 @@
 #include <cstddef>
 
 ViewportManager::ViewportManager(TermBoundaries boundaries)
-    : view_offset(0), max_visible_rows(boundaries.max_row),
-      max_visible_cols(boundaries.max_col) {
-}
+    : view_offset(0), max_visible_rows(boundaries.max_row - 2),
+      max_visible_cols(boundaries.max_col) {}
 
 Cursor ViewportManager::modelToScreen(const Cursor& modelPos) const {
     return Cursor{modelPos.row - view_offset, modelPos.col,

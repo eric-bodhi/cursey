@@ -6,8 +6,8 @@
 #include "tui.h"
 #include <fstream>
 #include <iostream>
-#include <string>
 #include <notcurses/notcurses.h>
+#include <string>
 
 // A helper to convert an integer key to a string.
 // (Alternatively, std::to_string could be used directly.)
@@ -19,9 +19,6 @@ Editor::Editor(const std::string& filepath)
     : tui(buffer, filepath), buffer(filepath), viewport({0, 0}),
       cm(buffer, tui.get_terminal_size().max_row), m_filepath(filepath),
       shouldExit(false) {
-      TermBoundaries full = tui.get_terminal_size();
-      TermBoundaries textBounds{ full.max_row - 2, full.max_col };
-      viewport = ViewportManager(textBounds);
 }
 
 void Editor::writeFile() {
@@ -39,7 +36,18 @@ void Editor::writeFile() {
 }
 
 void Editor::setMode(Mode mode) {
+    if (currMode == Mode::Visual && mode != Mode::Visual) {
+        m_visual_start = std::nullopt;
+        m_visual_end = std::nullopt;
+    } else if (mode == Mode::Visual) {
+        m_visual_start = cm.get();
+        m_visual_end = cm.get();
+    }
     currMode = mode;
+}
+
+void Editor::setVisualEnd(const Cursor& cursor) {
+    m_visual_end = cursor;
 }
 
 void Editor::insertMode(int input) {
@@ -120,7 +128,8 @@ void Editor::updateView() {
     auto modelCursor = cm.get();
     viewport.adjustViewPort(modelCursor);
     auto screenCursor = viewport.modelToScreen(modelCursor);
-    tui.render_file(screenCursor, buffer, viewport.getViewOffset());
+    tui.render_file(screenCursor, buffer, viewport.getViewOffset(),
+                    m_visual_start, m_visual_end);
 }
 
 bool Editor::execute(const std::unordered_map<
@@ -165,6 +174,7 @@ void Editor::run() {
         switch (currMode) {
         case Mode::Normal:
             tui.setCursorMode(CursorMode::Block);
+            tui.render_message("");
             if (!execute(Keybindings::normalkeys, intToString(input))) {
                 execute(Keybindings::normalkeys,
                         intToString(lastInput) + intToString(input));
@@ -173,12 +183,16 @@ void Editor::run() {
         case Mode::Insert:
             insertMode(input);
             tui.setCursorMode(CursorMode::Bar);
+            tui.render_message("-- INSERT --");
             break;
         case Mode::Command:
             commandMode();
             break;
         case Mode::Visual:
-            // Visual mode handling could be added here.
+            if (!execute(Keybindings::visualkeys, intToString(input))) {
+                execute(Keybindings::visualkeys,
+                        intToString(lastInput) + intToString(input));
+            }
             break;
         }
         lastInput = input;

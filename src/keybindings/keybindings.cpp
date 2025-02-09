@@ -25,6 +25,7 @@ std::unordered_map<std::string_view, std::function<void(Editor&)>> normalkeys =
              }
          }},
         {"i", [](Editor& editor) { editor.setMode(Mode::Insert); }},
+        {"v", [](Editor& editor) { editor.setMode(Mode::Visual); }},
         {"a",
          [](Editor& editor) {
              auto& cm = editor.getCm();
@@ -51,5 +52,43 @@ std::unordered_map<std::string_view, std::function<void(Editor&)>> normalkeys =
              editor.getCm().moveAbs({tb.lineCount() - 1, 0});
          }},
         {"gg", [](Editor& editor) { editor.getCm().moveAbs({0, 0}); }},
+};
+
+std::unordered_map<std::string_view, std::function<void(Editor&)>> visualkeys =
+    {
+        {"h",
+         [](Editor& editor) {
+             editor.getCm().moveDir(Direction::Left);
+             editor.setVisualEnd(editor.getCm().get());
+         }},
+        {"j",
+         [](Editor& editor) {
+             editor.getCm().moveDir(Direction::Down);
+             editor.setVisualEnd(editor.getCm().get());
+         }},
+        {"k",
+         [](Editor& editor) {
+             editor.getCm().moveDir(Direction::Up);
+             editor.setVisualEnd(editor.getCm().get());
+         }},
+        {"l",
+         [](Editor& editor) {
+             editor.getCm().moveDir(Direction::Right);
+             editor.setVisualEnd(editor.getCm().get());
+         }},
+        {"G",
+         [](Editor& editor) {
+             auto& tb = editor.getBuffer();
+             editor.getCm().moveAbs({tb.lineCount() - 1, 0});
+             editor.setVisualEnd(editor.getCm().get());
+         }},
+        {"gg",
+         [](Editor& editor) {
+             editor.getCm().moveAbs({0, 0});
+             editor.setVisualEnd(editor.getCm().get());
+         }},
+        {"v", [](Editor& editor) { editor.setMode(Mode::Normal); }},
+        {"\x1b",
+         [](Editor& editor) { editor.setMode(Mode::Normal); }}, // Escape key
 };
 } // namespace Keybindings
