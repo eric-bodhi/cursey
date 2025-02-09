@@ -159,6 +159,12 @@ void Editor::run() {
             }
         }
 
+        TermBoundaries currentTermSize = tui.get_terminal_size();
+        if (currentTermSize.max_row != viewport.getMaxRow() + 2 ||
+            currentTermSize.max_col != viewport.getMaxCol()) {
+            viewport.updateTerminalSize(currentTermSize);
+        }
+
         switch (currMode) {
         case Mode::Normal:
         case Mode::Insert:
