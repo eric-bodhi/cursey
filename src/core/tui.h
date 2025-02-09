@@ -28,15 +28,17 @@ private:
     std::size_t lengthofsize_t(std::size_t value) const;
     void create_planes();
     Logger logger = Logger("../logfile.txt");
+    const std::string filename;
 
 public:
-    NotcursesTUI(const TextBuffer& buffer);
+    NotcursesTUI(const TextBuffer& buffer, std::string_view file);
     ~NotcursesTUI();
 
     void resize(std::size_t line_count);
     void render_file(const Cursor& cursor, const TextBuffer& buffer, std::size_t view_offset);
-    void render_tool_line(const Cursor& cursor);
+    void render_tool_line(const Cursor& cursor, const bool& wasModified);
     void render_command_line(const std::string& command);
+    void render_message(const std::string& message);
 
     TermBoundaries get_terminal_size() const;
     int getch();

@@ -25,7 +25,6 @@ void NotcursesTUI::create_planes() {
     ncchannels_set_bg_rgb(&main_channel, 0xADD8E6);
     ncplane_set_base(main_plane, " ", 0, main_channel);
 
-
     // Line number plane (left side)
     ncplane_options line_opts{};
     line_opts.y = 0;
@@ -57,7 +56,8 @@ void NotcursesTUI::create_planes() {
     cmd_plane = ncplane_create(stdplane, &cmd_opts);
 }
 
-NotcursesTUI::NotcursesTUI(const TextBuffer& buffer) {
+NotcursesTUI::NotcursesTUI(const TextBuffer& buffer, std::string_view file)
+    : filename(file) {
     notcurses_options opts{};
     nc = notcurses_init(&opts, stdout);
     if (!nc) {
@@ -76,7 +76,6 @@ NotcursesTUI::NotcursesTUI(const TextBuffer& buffer) {
     const std::size_t line_count = buffer.lineCount();
     line_number_length = line_count > 0 ? lengthofsize_t(line_count) : 1;
     max_line_col = line_number_length + 2; // Fixed padding of 2 columns
-
     create_planes();
 }
 
@@ -107,7 +106,8 @@ void NotcursesTUI::render_file(const Cursor& cursor, const TextBuffer& buffer,
     ncplane_erase(main_plane);
     ncplane_erase(line_plane);
 
-    logger.log(std::to_string(max_line_col) + " " + std::to_string(line_number_length));
+    logger.log(std::to_string(max_line_col) + " " +
+               std::to_string(line_number_length));
     resize(buffer.lineCount());
     for (std::size_t i = 0; i < max_row - 2; ++i) {
         const std::size_t line_index = i + view_offset;
@@ -133,13 +133,18 @@ void NotcursesTUI::render_file(const Cursor& cursor, const TextBuffer& buffer,
     ncplane_cursor_move_yx(main_plane, cursor_row, cursor_col);
     notcurses_cursor_enable(nc, cursor_row,
                             cursor_col + static_cast<int>(max_line_col));
-    render_tool_line(cursor);
+    render_tool_line(cursor, buffer.isModified());
 }
 
-void NotcursesTUI::render_tool_line(const Cursor& cursor) {
+void NotcursesTUI::render_tool_line(const Cursor& cursor,
+                                    const bool& wasModified) {
     ncplane_erase(tool_plane);
-    std::string pos_str =
+    const std::string pos_str =
         std::to_string(cursor.row + 1) + "," + std::to_string(cursor.col + 1);
+    ncplane_printf_yx(tool_plane, 0, 0, "%s", filename.c_str());
+    if (wasModified) {
+        ncplane_printf_yx(tool_plane, 0, filename.size() + 1, "%s", "[+]");
+    }
     ncplane_printf_yx(tool_plane, 0,
                       static_cast<int>(max_col - pos_str.length()), "%s",
                       pos_str.c_str());
@@ -149,6 +154,12 @@ void NotcursesTUI::render_tool_line(const Cursor& cursor) {
 void NotcursesTUI::render_command_line(const std::string& command) {
     ncplane_erase(cmd_plane);
     ncplane_printf_yx(cmd_plane, 0, 0, ":%s", command.c_str());
+    notcurses_render(nc);
+}
+
+void NotcursesTUI::render_message(const std::string& message) {
+    ncplane_erase(cmd_plane);
+    ncplane_printf_yx(cmd_plane, 0, 0, "%s", message.c_str());
     notcurses_render(nc);
 }
 

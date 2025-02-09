@@ -15,6 +15,7 @@ private:
     std::vector<std::variant<std::string, Gb>> buffer;
     std::size_t gbIndex = 0;
     Logger tblogger = Logger("../logfile.txt");
+    bool wasModified = false;
 
 public:
     TextBuffer(const std::string& filepath);
@@ -28,6 +29,8 @@ public:
 
     const std::size_t getLineLength(std::size_t index) const;
 
+    bool isModified() const;
+    void setModified(const bool& value);
     // has to make original editted line a string and new line a gapbuffer
     void switchLine(std::size_t newLineIdx);
 
