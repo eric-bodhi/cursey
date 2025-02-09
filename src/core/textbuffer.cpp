@@ -47,6 +47,14 @@ const std::size_t TextBuffer::getLineLength(std::size_t index) const {
     return getLine(index).length();
 }
 
+bool TextBuffer::isModified() const {
+    return wasModified;
+}
+
+void TextBuffer::setModified(const bool& value) {
+    wasModified = value;
+}
+
 // turns gapbuffer back to string and new line to gapbuffer (to be edited)
 // where cm is the current cursor position
 void TextBuffer::switchLine(std::size_t newLineIdx) {
@@ -88,6 +96,7 @@ void TextBuffer::insert(const CursorManager& cm, const char c) {
         Gb& gbLine = std::get<Gb>(buffer.at(cursor.row));
         gbLine.insert(c);
     }
+    wasModified = true;
 }
 
 void TextBuffer::erase(const CursorManager& cm) {
@@ -97,6 +106,7 @@ void TextBuffer::erase(const CursorManager& cm) {
         Gb& gbLine = std::get<Gb>(buffer.at(cursor.row));
         gbLine.del();
     }
+    wasModified = true;
 }
 
 void TextBuffer::newLine(const CursorManager& cm) {
@@ -117,6 +127,7 @@ void TextBuffer::newLine(const CursorManager& cm) {
         buffer.at(lineIdx) =
             std::string(line.begin(), line.begin() + cm.get().col);
     }
+    wasModified = true;
 }
 
 void TextBuffer::deleteLine(const CursorManager& cm) {
@@ -128,4 +139,5 @@ void TextBuffer::deleteLine(const CursorManager& cm) {
 
         switchLine(lineIdx - 1);
     }
+    wasModified = true;
 }

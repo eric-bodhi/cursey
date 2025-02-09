@@ -7,6 +7,7 @@
 #include <fstream>
 #include <iostream>
 #include <string>
+#include <notcurses/notcurses.h>
 
 // A helper to convert an integer key to a string.
 // (Alternatively, std::to_string could be used directly.)
@@ -15,7 +16,7 @@ std::string intToString(int value) {
 }
 
 Editor::Editor(const std::string& filepath)
-    : tui(), buffer(filepath), viewport({0, 0}),
+    : tui(buffer, filepath), buffer(filepath), viewport({0, 0}),
       cm(buffer, tui.get_terminal_size().max_row), m_filepath(filepath),
       shouldExit(false) {
       TermBoundaries full = tui.get_terminal_size();
@@ -34,6 +35,7 @@ void Editor::writeFile() {
         file << buffer.getLine(i) << '\n';
     }
     file.close();
+    buffer.setModified(false);
 }
 
 void Editor::setMode(Mode mode) {
@@ -138,7 +140,16 @@ void Editor::run() {
     // Initial render.
     updateView();
 
-    while (!shouldExit) {
+    while (true) {
+        if (shouldExit) {
+            if (buffer.isModified()) {
+                tui.render_message("Changes not written, use ':w' or ':q!'");
+                shouldExit = false;
+            } else {
+                break;
+            }
+        }
+
         switch (currMode) {
         case Mode::Normal:
         case Mode::Insert:

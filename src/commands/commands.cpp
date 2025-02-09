@@ -18,6 +18,13 @@ std::unordered_map<std::string_view, std::function<void(Editor&)>> ftable = {
         }
     },
     {
+        "q!",
+        [](Editor& editor) {
+            editor.setShouldExit(true);
+            editor.getBuffer().setModified(false);
+        }
+    },
+    {
         "wq",
         [](Editor& editor) {
             ftable.at("w")(editor);

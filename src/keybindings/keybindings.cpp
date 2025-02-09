@@ -35,7 +35,14 @@ std::unordered_map<std::string_view, std::function<void(Editor&)>> normalkeys =
         {":", [](Editor& editor) { editor.setMode(Mode::Command); }},
 
         {"dd",
-         [](Editor& editor) { editor.getBuffer().deleteLine(editor.getCm()); }},
+         [](Editor& editor) {
+             auto& buffer = editor.getBuffer();
+             auto& cm = editor.getCm();
+             editor.getBuffer().deleteLine(editor.getCm());
+             if (cm.get().row == buffer.lineCount()) {
+                 cm.moveDir(Direction::Up);
+             }
+         }},
 
         {"G",
          [](Editor& editor) {

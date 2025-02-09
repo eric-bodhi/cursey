@@ -9,9 +9,11 @@ void CursorManager::moveDir(Direction direction) {
     switch (direction) {
     case Direction::Up:
         if (m_cursor.row > 0) {
-            if (m_buffer.getLineLength(m_cursor.row - 1) <=
+            if (m_buffer.getLineLength(m_cursor.row - 1) == 0) {
+                m_cursor.col = 0;
+            } else if (m_buffer.getLineLength(m_cursor.row - 1) - 1 <
                 m_cursor.original_col) {
-                m_cursor.col = m_buffer.getLineLength(m_cursor.row - 1);
+                m_cursor.col = m_buffer.getLineLength(m_cursor.row - 1) - 1;
             } else if (m_buffer.getLineLength(m_cursor.row - 1) >=
                        m_cursor.original_col) {
                 m_cursor.col = m_cursor.original_col;
@@ -22,9 +24,11 @@ void CursorManager::moveDir(Direction direction) {
 
     case Direction::Down:
         if (m_cursor.row < m_buffer.lineCount() - 1) {
-            if (m_buffer.getLineLength(m_cursor.row + 1) <=
+            if (m_buffer.getLineLength(m_cursor.row + 1) == 0) {
+                m_cursor.col = 0;
+            } else if (m_buffer.getLineLength(m_cursor.row + 1) - 1 <=
                 m_cursor.original_col) {
-                m_cursor.col = m_buffer.getLineLength(m_cursor.row + 1);
+                m_cursor.col = m_buffer.getLineLength(m_cursor.row + 1) - 1;
             } else if (m_buffer.getLineLength(m_cursor.row + 1) >=
                        m_cursor.original_col) {
                 m_cursor.col = m_cursor.original_col;
