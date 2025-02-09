@@ -21,6 +21,10 @@ void NotcursesTUI::create_planes() {
     main_opts.rows = static_cast<int>(max_row - 2);
     main_opts.cols = static_cast<int>(max_col - max_line_col);
     main_plane = ncplane_create(stdplane, &main_opts);
+    uint64_t main_channel = 0;
+    ncchannels_set_bg_rgb(&main_channel, 0xADD8E6);
+    ncplane_set_base(main_plane, " ", 0, main_channel);
+
 
     // Line number plane (left side)
     ncplane_options line_opts{};
@@ -40,6 +44,9 @@ void NotcursesTUI::create_planes() {
     tool_opts.rows = 1;
     tool_opts.cols = static_cast<int>(max_col);
     tool_plane = ncplane_create(stdplane, &tool_opts);
+    uint64_t tool_channel = 0;
+    ncchannels_set_bg_rgb(&tool_channel, 0xFF0000);
+    ncplane_set_base(tool_plane, " ", 0, tool_channel);
 
     // Command line plane (bottom - 1)
     ncplane_options cmd_opts{};
