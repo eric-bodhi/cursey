@@ -120,6 +120,10 @@ const std::string& Editor::getFilePath() {
     return m_filepath;
 }
 
+const VisualRange Editor::getVisualRange() {
+    return {m_visual_start, m_visual_end};
+}
+
 void Editor::setShouldExit(bool value) {
     shouldExit = value;
 }
@@ -182,8 +186,11 @@ void Editor::run() {
             tui.setCursorMode(CursorMode::Block);
             tui.render_message("");
             if (!execute(Keybindings::normalkeys, intToString(input))) {
-                execute(Keybindings::normalkeys,
-                        intToString(lastInput) + intToString(input));
+                if (execute(Keybindings::normalkeys,
+                        intToString(lastInput) + intToString(input))) {
+                        lastInput = 0;
+                        input = 0;
+                    }
             }
             break;
         case Mode::Insert:

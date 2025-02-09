@@ -38,13 +38,17 @@ public:
     // has to make original editted line a string and new line a gapbuffer
     void switchLine(std::size_t newLineIdx);
 
+    void moveCursor(const Cursor& cursor);
     void moveCursor(const CursorManager& newCursor);
 
     void insert(const CursorManager& cm, const char c);
 
+    void erase(const Cursor& cursor);
     void erase(const CursorManager& cm);
+    void deleteRange(const Cursor& start, const Cursor& end);
 
     // newLine at index cm.row + 1
     void newLine(const CursorManager& cm);
     void deleteLine(const CursorManager& cm);
+    void deleteLine(const std::size_t lineIdx);
 };

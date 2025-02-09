@@ -110,6 +110,16 @@ void TextBuffer::moveCursor(const CursorManager& newCursor) {
     }
 }
 
+void TextBuffer::moveCursor(const Cursor& cursor) {
+    if (gbIndex != cursor.row) {
+        switchLine(cursor.row);
+    }
+
+    if (std::holds_alternative<Gb>(buffer.at(gbIndex))) {
+        std::get<Gb>(buffer.at(gbIndex)).move_cursor(cursor.col);
+    }
+}
+
 void TextBuffer::insert(const CursorManager& cm, const char c) {
     auto cursor = cm.get();
     moveCursor(cm);
@@ -121,8 +131,12 @@ void TextBuffer::insert(const CursorManager& cm, const char c) {
 }
 
 void TextBuffer::erase(const CursorManager& cm) {
-    auto cursor = cm.get();
-    moveCursor(cm);
+    erase(cm.get());
+}
+
+void TextBuffer::erase(const Cursor& cursor) {
+    moveCursor(cursor);
+    tblogger.log(std::to_string(cursor.row) + " " + std::to_string(cursor.col));
     if (std::holds_alternative<Gb>(buffer.at(cursor.row))) {
         Gb& gbLine = std::get<Gb>(buffer.at(cursor.row));
         gbLine.del();
@@ -153,6 +167,10 @@ void TextBuffer::newLine(const CursorManager& cm) {
 
 void TextBuffer::deleteLine(const CursorManager& cm) {
     std::size_t lineIdx = cm.get().row;
+    deleteLine(lineIdx);
+}
+
+void TextBuffer::deleteLine(const std::size_t lineIdx) {
     buffer.erase(buffer.begin() + lineIdx);
     if (lineIdx == 0 && lineCount() == 1) {
         buffer.insert(buffer.begin() + lineIdx, "");
@@ -161,4 +179,34 @@ void TextBuffer::deleteLine(const CursorManager& cm) {
         switchLine(lineIdx - 1);
     }
     wasModified = true;
+}
+
+// assumes start is before end
+void TextBuffer::deleteRange(const Cursor& start, const Cursor& end) {
+    if (start.row == end.row) {
+        if (end.col == getLineLength(start.row)) {
+            deleteLine(start.row);
+            return;
+        }
+        for (std::size_t i = 0; i <= end.col; i++) {
+            tblogger.log(getLine(start.row));
+            erase({start.row, start.col}); // buffer shifs left after erase so
+                                           // just erase in place i times
+        }
+    }
+
+    else {
+        // delete [start.col, end of line]
+        for (std::size_t i = 0; i < getLineLength(start.row); i++) {
+            erase({start.row, start.col});
+        }
+        // delete all lines in between
+        for (std::size_t line = start.col + 1; line < end.row; line++) {
+            deleteLine(start.row + 1);
+        }
+        // delete [start of line, end.col]
+        for (std::size_t i = 0; i <= end.col; i++) {
+            erase({end.row, 0});
+        }
+    }
 }

@@ -88,6 +88,21 @@ std::unordered_map<std::string_view, std::function<void(Editor&)>> visualkeys =
              editor.setVisualEnd(editor.getCm().get());
          }},
         {"v", [](Editor& editor) { editor.setMode(Mode::Normal); }},
+        {"d",
+         [](Editor& editor) {
+             const VisualRange& vr = editor.getVisualRange();
+             auto& start_cursor = vr.visual_start.value();
+             auto& end_cursor = vr.visual_end.value();
+             editor.getLogger().log(std::to_string(start_cursor.row) + " " +
+                                    std::to_string(start_cursor.col) + " : " +
+                                    std::to_string(end_cursor.row) + " " +
+                                    std::to_string(end_cursor.col));
+
+             editor.getBuffer().deleteRange(start_cursor, end_cursor);
+            editor.getCm().moveAbs(start_cursor);
+             // need to update cursor position
+             editor.setMode(Mode::Normal);
+         }},
         {"\x1b",
          [](Editor& editor) { editor.setMode(Mode::Normal); }}, // Escape key
 };

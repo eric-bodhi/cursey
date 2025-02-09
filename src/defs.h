@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstddef>
+#include <optional>
 
 struct Cursor {
     std::size_t row = 0;
@@ -10,6 +11,10 @@ struct Cursor {
     bool operator==(Cursor& other) {
         return row == other.row && col == other.col;
     }
+};
+
+struct VisualRange {
+    const std::optional<Cursor>& visual_start, visual_end;
 };
 
 enum class Direction {
