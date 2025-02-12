@@ -56,8 +56,10 @@ void CursorManager::moveDir(Direction direction) {
 }
 
 void CursorManager::moveAbs(const Cursor& argCursor) {
-    m_cursor.col = argCursor.col;
-    m_cursor.row = argCursor.row;
+    if (argCursor.row <= m_cursor.row && argCursor.col < m_buffer.getLineLength(argCursor.row)) {
+        m_cursor.col = argCursor.col;
+        m_cursor.row = argCursor.row;
+    }
 }
 
 const Cursor& CursorManager::get() {

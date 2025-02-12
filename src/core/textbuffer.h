@@ -41,11 +41,12 @@ public:
     void moveCursor(const Cursor& cursor);
     void moveCursor(const CursorManager& newCursor);
 
+    void insert(const Cursor& cursor, const char c);
     void insert(const CursorManager& cm, const char c);
 
     void erase(const Cursor& cursor);
     void erase(const CursorManager& cm);
-    void deleteRange(const Cursor& start, const Cursor& end);
+    void deleteRange(const Cursor& start, const Cursor& end, Logger& logger);
 
     // newLine at index cm.row + 1
     void newLine(const CursorManager& cm);

@@ -85,7 +85,6 @@ void Editor::commandMode() {
 
     int ch;
     while ((ch = tui.getch()) != NCKEY_ENTER) {
-        logger.log(std::to_string(ch));
         if (ch == NCKEY_ESC) { // ESC key
             currMode = Mode::Normal;
             return;
@@ -120,7 +119,7 @@ const std::string& Editor::getFilePath() {
     return m_filepath;
 }
 
-const VisualRange Editor::getVisualRange() {
+VisualRange Editor::getVisualRange() {
     return {m_visual_start, m_visual_end};
 }
 

@@ -11,6 +11,12 @@ struct Cursor {
     bool operator==(Cursor& other) {
         return row == other.row && col == other.col;
     }
+
+    void swap(Cursor&& other) noexcept {
+        std::swap(row, other.row);
+        std::swap(col, other.col);
+        std::swap(original_col, other.original_col);
+    }
 };
 
 struct VisualRange {

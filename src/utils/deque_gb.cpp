@@ -67,12 +67,12 @@ void Gb::del() {
 }
 
 std::string Gb::string_with_gap() {
-    return std::string(left.begin(), left.end()) + " " +
+    return std::string(left.begin(), left.end()) + "_" +
            std::string(right.begin(), right.end());
 }
 
 std::string Gb::string_with_gap() const {
-    return std::string(left.begin(), left.end()) + " " +
+    return std::string(left.begin(), left.end()) + "_" +
            std::string(right.begin(), right.end());
 }
 

@@ -55,5 +55,5 @@ public:
     CursorManager& getCm();
     Logger& getLogger();
     const std::string& getFilePath();
-    const VisualRange getVisualRange();
+    VisualRange getVisualRange();
 };
