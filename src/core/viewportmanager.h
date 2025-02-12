@@ -12,21 +12,21 @@ private:
 public:
     ViewportManager(TermBoundaries boundaries);
 
-    void updateTerminalSize(TermBoundaries boundaries);
+    void update_term_size(TermBoundaries boundaries);
 
     // 0 to 1-idx
-    Cursor modelToScreen(const Cursor& modelPos) const;
+    Cursor model_to_screen(const Cursor& modelPos) const;
 
     // 1 to 0-idx
     Cursor screenToModel(const Cursor& screenPos) const;
 
     bool isVisible(const Cursor& modelPos) const;
 
-    void adjustViewPort(const Cursor& modelPos);
+    void adjust_viewport(const Cursor& modelPos);
 
-    std::size_t getViewOffset() const;
+    std::size_t get_view_offset() const;
 
     std::pair<std::size_t, std::size_t> getVisibleRange() const;
-    std::size_t getMaxRow() const;
-    std::size_t getMaxCol() const;
+    std::size_t get_max_row() const;
+    std::size_t get_max_col() const;
 };

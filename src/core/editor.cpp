@@ -11,17 +11,17 @@
 
 // A helper to convert an integer key to a string.
 // (Alternatively, std::to_string could be used directly.)
-std::string intToString(int value) {
-    return std::string(1, static_cast<char>(value));
+std::string int_to_str(int value) {
+    return {1, static_cast<char>(value)};
 }
 
 Editor::Editor(const std::string& filepath)
     : tui(buffer, filepath), buffer(filepath), viewport({0, 0}),
       cm(buffer, tui.get_terminal_size().max_row), m_filepath(filepath),
-      shouldExit(false) {
+      should_exit(false) {
 }
 
-void Editor::writeFile() {
+void Editor::write_file() {
     std::ofstream file(m_filepath, std::ios::trunc);
     if (!file.is_open()) {
         std::cerr << "Failed to open existing file: " << m_filepath << '\n';
@@ -35,25 +35,25 @@ void Editor::writeFile() {
     buffer.set_modified(false);
 }
 
-void Editor::setMode(Mode mode) {
-    if (currMode == Mode::Visual && mode != Mode::Visual) {
+void Editor::set_mode(Mode mode) {
+    if (curr_mode == Mode::Visual && mode != Mode::Visual) {
         m_visual_start = std::nullopt;
         m_visual_end = std::nullopt;
     } else if (mode == Mode::Visual) {
         m_visual_start = cm.get();
         m_visual_end = cm.get();
     }
-    currMode = mode;
+    curr_mode = mode;
 }
 
-void Editor::setVisualEnd(const Cursor& cursor) {
+void Editor::set_visual_end(const Cursor& cursor) {
     m_visual_end = cursor;
 }
 
-void Editor::insertMode(int input) {
+void Editor::insert_mode(int input) {
     // For our Notcurses version, we assume input is an ASCII code.
     if (input == NCKEY_ESC) { // ESC key
-        currMode = Mode::Normal;
+        curr_mode = Mode::Normal;
         return;
     }
 
@@ -61,36 +61,36 @@ void Editor::insertMode(int input) {
     case NCKEY_BACKSPACE: // Backspace (typically 127)
         if (cm.get().col > 0) {
             buffer.erase(cm);
-            cm.moveDir(Direction::Left);
+            cm.move_dir(Direction::Left);
         } else {
             buffer.delete_line(cm);
-            cm.moveDir(Direction::Up);
+            cm.move_dir(Direction::Up);
         }
         break;
     case NCKEY_ENTER: // Enter key
         buffer.new_line(cm);
-        cm.moveDir(Direction::Down);
+        cm.move_dir(Direction::Down);
         buffer.move_cursor(cm);
         break;
     default:
         buffer.insert(cm, static_cast<char>(input));
-        cm.moveDir(Direction::Right);
+        cm.move_dir(Direction::Right);
     }
 }
 
-void Editor::commandMode() {
-    // Use a simple loop with NotcursesTUI::getch() to collect a command.
+void Editor::command_mode() {
+    // Use a simple loop with NotcursesTUI::get_char() to collect a command.
     std::string cmd;
     tui.render_command_line(""); // Clear prompt
 
     int ch;
-    while ((ch = tui.getch()) != NCKEY_ENTER) {
+    while ((ch = tui.get_char()) != NCKEY_ENTER) {
         if (ch == NCKEY_ESC) { // ESC key
-            currMode = Mode::Normal;
+            curr_mode = Mode::Normal;
             return;
         } else if (ch == NCKEY_BACKSPACE) { // Backspace
             if (cmd.empty()) {
-                currMode = Mode::Normal;
+                curr_mode = Mode::Normal;
                 return;
             }
             cmd.pop_back();
@@ -99,45 +99,45 @@ void Editor::commandMode() {
         }
         tui.render_command_line(cmd);
     }
-    execute(Command::ftable, cmd);
-    currMode = Mode::Normal;
+    execute(Command::command_table, cmd);
+    curr_mode = Mode::Normal;
 }
 
-TextBuffer& Editor::getBuffer() {
+TextBuffer& Editor::get_buffer() {
     return buffer;
 }
 
-CursorManager& Editor::getCm() {
+CursorManager& Editor::get_cm() {
     return cm;
 }
 
-Logger& Editor::getLogger() {
+Logger& Editor::get_logger() {
     return logger;
 }
 
-const std::string& Editor::getFilePath() {
+const std::string& Editor::get_filepath() {
     return m_filepath;
 }
 
-VisualRange Editor::getVisualRange() {
+VisualRange Editor::get_visual_range() {
     return {m_visual_start, m_visual_end};
 }
 
-void Editor::setShouldExit(bool value) {
-    shouldExit = value;
+void Editor::set_should_exit(bool value) {
+    should_exit = value;
 }
 
-void Editor::updateView() {
-    auto modelCursor = cm.get();
-    viewport.adjustViewPort(modelCursor);
-    auto screenCursor = viewport.modelToScreen(modelCursor);
-    tui.render_file(screenCursor, buffer, viewport.getViewOffset(),
+void Editor::update_view() {
+    auto model_cursor = cm.get();
+    viewport.adjust_viewport(model_cursor);
+    auto screen_cursor = viewport.model_to_screen(model_cursor);
+    tui.render_file(screen_cursor, buffer, viewport.get_view_offset(),
                     m_visual_start, m_visual_end);
 }
 
 bool Editor::execute(const std::unordered_map<
-                         std::string_view, std::function<void(Editor&)>>& table,
-                     std::string_view cmd) {
+                         std::string, std::function<void(Editor&)>>& table,
+                     const std::string& cmd) {
     if (table.contains(cmd)) {
         table.at(cmd)(*this);
         return true;
@@ -147,76 +147,76 @@ bool Editor::execute(const std::unordered_map<
 
 void Editor::run() {
     int input;
-    int lastInput = 0;
-    Mode lastMode = Mode::Normal;
+    int last_input = 0;
+    Mode last_mode = Mode::Normal;
     // Initial render.
-    updateView();
+    update_view();
 
     while (true) {
-        if (shouldExit) {
+        if (should_exit) {
             if (buffer.is_modified()) {
                 tui.render_message("Changes not written, use ':w' or ':q!'");
-                shouldExit = false;
+                should_exit = false;
             } else {
                 break;
             }
         }
 
-        TermBoundaries currentTermSize = tui.get_terminal_size();
-        if (currentTermSize.max_row != viewport.getMaxRow() + 2 ||
-            currentTermSize.max_col != viewport.getMaxCol()) {
-            viewport.updateTerminalSize(currentTermSize);
+        TermBoundaries curr_term_size = tui.get_terminal_size();
+        if (curr_term_size.max_row != viewport.get_max_row() + 2 ||
+            curr_term_size.max_col != viewport.get_max_col()) {
+            viewport.update_term_size(curr_term_size);
         }
 
-        switch (currMode) {
+        switch (curr_mode) {
         case Mode::Normal:
         case Mode::Insert:
         case Mode::Visual:
-            input = tui.getch(); // Use NotcursesTUI’s blocking input
+            input = tui.get_char(); // Use NotcursesTUI’s blocking input
             break;
         case Mode::Command:
             input = 0; // Command mode uses its own input loop.
-            lastInput = 0;
+            last_input = 0;
             break;
         }
 
-        switch (currMode) {
+        switch (curr_mode) {
         case Mode::Normal:
-            tui.setCursorMode(CursorMode::Block);
+            tui.set_cursor_mode(CursorMode::Block);
             tui.render_message("");
-            if (!execute(Keybindings::normalkeys, intToString(input))) {
-                if (execute(Keybindings::normalkeys,
-                        intToString(lastInput) + intToString(input))) {
-                        lastInput = 0;
-                        input = 0;
-                    }
+            if (!execute(Keybindings::normal_keys, int_to_str(input))) {
+                if (execute(Keybindings::normal_keys,
+                            int_to_str(last_input) + int_to_str(input))) {
+                    input = 0;
+                    last_input = 0;
+                }
             }
             break;
         case Mode::Insert:
-            insertMode(input);
-            tui.setCursorMode(CursorMode::Bar);
+            insert_mode(input);
+            tui.set_cursor_mode(CursorMode::Bar);
             tui.render_message("-- INSERT --");
             break;
         case Mode::Command:
-            commandMode();
+            command_mode();
             break;
         case Mode::Visual:
-            if (!execute(Keybindings::visualkeys, intToString(input))) {
-                execute(Keybindings::visualkeys,
-                        intToString(lastInput) + intToString(input));
+            if (!execute(Keybindings::visual_keys, int_to_str(input))) {
+                execute(Keybindings::visual_keys,
+                        int_to_str(last_input) + int_to_str(input));
             }
             break;
         }
-        lastInput = input;
+        last_input = input;
         // Update the cursor shape if the mode has changed.
-        if (currMode != lastMode) {
-            if (currMode == Mode::Insert) {
-                tui.setCursorMode(CursorMode::Bar);
+        if (curr_mode != last_mode) {
+            if (curr_mode == Mode::Insert) {
+                tui.set_cursor_mode(CursorMode::Bar);
             } else {
-                tui.setCursorMode(CursorMode::Block);
+                tui.set_cursor_mode(CursorMode::Block);
             }
-            lastMode = currMode;
+            last_mode = curr_mode;
         }
-        updateView();
+        update_view();
     }
 }

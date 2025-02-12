@@ -7,5 +7,6 @@
 
 namespace Command {
     //...
-    extern std::unordered_map<std::string_view, std::function<void(Editor&)>> ftable;
+    extern std::unordered_map<std::string, std::function<void(Editor&)>>
+    command_table;
 }

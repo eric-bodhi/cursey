@@ -9,13 +9,13 @@ ViewportManager::ViewportManager(TermBoundaries boundaries)
       max_visible_cols(boundaries.max_col) {
 }
 
-void ViewportManager::updateTerminalSize(TermBoundaries boundaries) {
+void ViewportManager::update_term_size(TermBoundaries boundaries) {
     term = boundaries;
     max_visible_rows = boundaries.max_row - 2;
     max_visible_cols = boundaries.max_col;
 }
 
-Cursor ViewportManager::modelToScreen(const Cursor& modelPos) const {
+Cursor ViewportManager::model_to_screen(const Cursor& modelPos) const {
     return Cursor{modelPos.row - view_offset, modelPos.col,
                   modelPos.original_col};
 }
@@ -30,7 +30,7 @@ bool ViewportManager::isVisible(const Cursor& modelPos) const {
            modelPos.row < view_offset + max_visible_rows;
 }
 
-void ViewportManager::adjustViewPort(const Cursor& modelPos) {
+void ViewportManager::adjust_viewport(const Cursor& modelPos) {
     if (modelPos.row < view_offset) {
         view_offset = modelPos.row;
     } else if (modelPos.row > view_offset + max_visible_rows - 1) {
@@ -38,7 +38,7 @@ void ViewportManager::adjustViewPort(const Cursor& modelPos) {
     }
 }
 
-std::size_t ViewportManager::getViewOffset() const {
+std::size_t ViewportManager::get_view_offset() const {
     return view_offset;
 }
 
@@ -47,9 +47,9 @@ std::pair<std::size_t, std::size_t> ViewportManager::getVisibleRange() const {
 }
 
 // viewportmanager.h
-std::size_t ViewportManager::getMaxRow() const {
+std::size_t ViewportManager::get_max_row() const {
     return term.max_row;
 }
-std::size_t ViewportManager::getMaxCol() const {
+std::size_t ViewportManager::get_max_col() const {
     return term.max_col;
 }

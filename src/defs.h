@@ -8,7 +8,7 @@ struct Cursor {
     std::size_t col = 0;
     std::size_t original_col = 0;
 
-    bool operator==(Cursor& other) {
+    bool operator==(Cursor& other) const {
         return row == other.row && col == other.col;
     }
 

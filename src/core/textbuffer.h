@@ -12,7 +12,7 @@ class CursorManager;
 
 class TextBuffer {
 private:
-    std::vector<std::variant<std::string, Gb>> buffer;
+    std::vector<std::variant<std::string, GapBuffer>> buffer;
     std::vector<std::string> original_buffer;
     std::size_t gb_idx = 0;
     Logger tb_logger = Logger("../logfile.txt");

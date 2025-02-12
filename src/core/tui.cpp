@@ -7,7 +7,7 @@
 #include <notcurses/notcurses.h>
 #include <string>
 
-std::size_t NotcursesTUI::lengthofsize_t(std::size_t value) const {
+std::size_t NotcursesTUI::lengthofsize_t(std::size_t value) {
     if (value == 0)
         return 1;
     return static_cast<std::size_t>(std::log10(value)) + 1;
@@ -67,10 +67,10 @@ NotcursesTUI::NotcursesTUI(const TextBuffer& buffer, std::string_view file)
     notcurses_cursor_enable(nc, 0, 4);
     stdplane = notcurses_stdplane(nc);
 
-    unsigned int urows = 0, ucols = 0;
-    ncplane_dim_yx(stdplane, &urows, &ucols);
-    max_row = static_cast<std::size_t>(urows);
-    max_col = static_cast<std::size_t>(ucols);
+    unsigned int u_rows = 0, u_cols = 0;
+    ncplane_dim_yx(stdplane, &u_rows, &u_cols);
+    max_row = static_cast<std::size_t>(u_rows);
+    max_col = static_cast<std::size_t>(u_cols);
 
     // Initialize line number area based on buffer contents
     const std::size_t line_count = buffer.line_count();
@@ -158,7 +158,7 @@ void NotcursesTUI::render_file(const Cursor& cursor, const TextBuffer& buffer,
             }
 
             nccell ccell = {};
-            ccell.gcluster = c;
+            ccell.gcluster = static_cast<unsigned char>(c);
             if (selected) {
                 ncchannels_set_bg_rgb(&ccell.channels,
                                       0x666666); // Gray background
@@ -181,12 +181,12 @@ void NotcursesTUI::render_file(const Cursor& cursor, const TextBuffer& buffer,
 }
 
 void NotcursesTUI::render_tool_line(const Cursor& cursor,
-                                    const bool& wasModified) {
+                                    const bool& was_modified) {
     ncplane_erase(tool_plane);
     const std::string pos_str =
         std::to_string(cursor.row + 1) + "," + std::to_string(cursor.col + 1);
     ncplane_printf_yx(tool_plane, 0, 0, "%s", filename.c_str());
-    if (wasModified) {
+    if (was_modified) {
         ncplane_printf_yx(tool_plane, 0, filename.size() + 1, "%s", "[+]");
     }
     ncplane_printf_yx(tool_plane, 0,
@@ -211,12 +211,12 @@ TermBoundaries NotcursesTUI::get_terminal_size() const {
     return {max_row, max_col};
 }
 
-int NotcursesTUI::getch() {
+int NotcursesTUI::get_char() {
     ncinput ni;
     return static_cast<int>(notcurses_get(nc, nullptr, &ni));
 }
 
-void NotcursesTUI::setCursorMode(CursorMode mode) {
+void NotcursesTUI::set_cursor_mode(CursorMode mode) {
     switch (mode) {
     case CursorMode::Block:
         std::printf("\033[2 q");

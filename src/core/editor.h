@@ -20,14 +20,14 @@ enum class Mode {
 
 class Editor {
 private:
-    Mode currMode = Mode::Normal;
+    Mode curr_mode = Mode::Normal;
     Logger logger = Logger("../logfile.txt");
-    NotcursesTUI tui; // Use NotcursesTUI instead of Cursey
+    NotcursesTUI tui;
     CursorManager cm;
     ViewportManager viewport;
     TextBuffer buffer;
     std::string m_filepath;
-    bool shouldExit;
+    bool should_exit;
 
     std::optional<Cursor> m_visual_start;
     std::optional<Cursor> m_visual_end;
@@ -36,24 +36,24 @@ public:
     explicit Editor(const std::string& filepath);
 
     // Mode-handling methods:
-    void setMode(Mode mode);
-    void setShouldExit(bool value);
-    void setVisualEnd(const Cursor& cursor);
-    void insertMode(int input);
-    void commandMode();
+    void set_mode(Mode mode);
+    void set_should_exit(bool value);
+    void set_visual_end(const Cursor& cursor);
+    void insert_mode(int input);
+    void command_mode();
 
-    void writeFile();
+    void write_file();
 
     void run();
 
-    bool execute(const std::unordered_map<std::string_view,
+    bool execute(const std::unordered_map<std::string,
                                           std::function<void(Editor&)>>& table,
-                 std::string_view cmd);
-    void updateView();
+                 const std::string& cmd);
+    void update_view();
 
-    TextBuffer& getBuffer();
-    CursorManager& getCm();
-    Logger& getLogger();
-    const std::string& getFilePath();
-    VisualRange getVisualRange();
+    TextBuffer& get_buffer();
+    CursorManager& get_cm();
+    Logger& get_logger();
+    const std::string& get_filepath();
+    VisualRange get_visual_range();
 };

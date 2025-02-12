@@ -15,20 +15,20 @@ class TextBuffer;
 class CursorManager {
 private:
     Cursor m_cursor;
-    TextBuffer& m_buffer; // Reference to Editor's Textbuffer
-    size_t max_row;       // Max Visible rows on screen
+    TextBuffer& m_buffer;
+    size_t max_row;
     Logger logger = Logger("../logfile.txt");
 
 public:
     CursorManager(TextBuffer& buffer, std::size_t max_r,
-                  const Cursor& argCursor = Cursor());
+                  const Cursor& arg_cursor = Cursor());
 
     const Cursor& get();
     const Cursor& get() const;
 
-    const Cursor getOneIdx();
-    const Cursor getOneIdx() const;
+    Cursor get_one_idx();
+    Cursor get_one_idx() const;
 
-    void moveDir(Direction direction);
-    void moveAbs(const Cursor& pos);
+    void move_dir(Direction direction);
+    void move_abs(const Cursor& pos);
 };

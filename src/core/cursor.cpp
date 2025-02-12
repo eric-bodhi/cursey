@@ -2,10 +2,10 @@
 #include "../defs.h"
 
 CursorManager::CursorManager(TextBuffer& buffer, std::size_t max_r,
-                             const Cursor& argCursor)
-    : m_buffer(buffer), max_row(max_r), m_cursor(argCursor){};
+                             const Cursor& arg_cursor)
+    : m_buffer(buffer), max_row(max_r), m_cursor(arg_cursor){};
 
-void CursorManager::moveDir(Direction direction) {
+void CursorManager::move_dir(Direction direction) {
     switch (direction) {
     case Direction::Up:
         if (m_cursor.row > 0) {
@@ -45,8 +45,6 @@ void CursorManager::moveDir(Direction direction) {
         break;
 
     case Direction::Right:
-        // curr behavior is 'i' inserts at end of line
-        // vi behavior is 'i' inserts one before end of line
         if (m_cursor.col < m_buffer.get_line_length(m_cursor.row)) {
             ++m_cursor.col;
             m_cursor.original_col = m_cursor.col;
@@ -55,10 +53,11 @@ void CursorManager::moveDir(Direction direction) {
     }
 }
 
-void CursorManager::moveAbs(const Cursor& argCursor) {
-    if (argCursor.row <= m_cursor.row && argCursor.col < m_buffer.get_line_length(argCursor.row)) {
-        m_cursor.col = argCursor.col;
-        m_cursor.row = argCursor.row;
+void CursorManager::move_abs(const Cursor& pos) {
+    if (pos.row <= m_cursor.row &&
+        pos.col < m_buffer.get_line_length(pos.row)) {
+        m_cursor.col = pos.col;
+        m_cursor.row = pos.row;
     }
 }
 
@@ -70,12 +69,12 @@ const Cursor& CursorManager::get() const {
     return m_cursor;
 }
 
-const Cursor CursorManager::getOneIdx() {
+Cursor CursorManager::get_one_idx() {
     return Cursor(m_cursor.row + 1, m_cursor.col + 1,
                   m_cursor.original_col + 1);
 }
 
-const Cursor CursorManager::getOneIdx() const {
+Cursor CursorManager::get_one_idx() const {
     return Cursor(m_cursor.row + 1, m_cursor.col + 1,
                   m_cursor.original_col + 1);
 }

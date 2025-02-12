@@ -3,18 +3,18 @@
 #include <deque>
 #include <string>
 
-class Gb {
+class GapBuffer {
 private:
     std::deque<char> left;
     std::deque<char> right;
 
 public:
-    Gb(const std::string& string = "", const size_t& cursor = 0);
+    explicit GapBuffer(const std::string& string = "", const size_t& cursor = 0);
 
     void move_cursor(size_t index);
     void move_left();
     void move_right();
-    void insert(const char c);
+    void insert(char c);
     void del();
 
     std::string string_with_gap();
