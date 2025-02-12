@@ -12,7 +12,7 @@
 // A helper to convert an integer key to a string.
 // (Alternatively, std::to_string could be used directly.)
 std::string int_to_str(int value) {
-    return {1, static_cast<char>(value)};
+    return {static_cast<char>(value)};
 }
 
 Editor::Editor(const std::string& filepath)
@@ -184,7 +184,10 @@ void Editor::run() {
         case Mode::Normal:
             tui.set_cursor_mode(CursorMode::Block);
             tui.render_message("");
+            logger.log(int_to_str(input));
+            //logger.log(std::to_string(input) + " " + int_to_str(input));
             if (!execute(Keybindings::normal_keys, int_to_str(input))) {
+                //logger.log(std::to_string(execute(Keybindings::normal_keys, int_to_str(input))));
                 if (execute(Keybindings::normal_keys,
                             int_to_str(last_input) + int_to_str(input))) {
                     input = 0;
