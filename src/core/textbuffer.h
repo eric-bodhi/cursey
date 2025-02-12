@@ -13,43 +13,44 @@ class CursorManager;
 class TextBuffer {
 private:
     std::vector<std::variant<std::string, Gb>> buffer;
-    std::vector<std::string> originalBuffer;
-    std::size_t gbIndex = 0;
-    Logger tblogger = Logger("../logfile.txt");
-    bool wasModified = false;
+    std::vector<std::string> original_buffer;
+    std::size_t gb_idx = 0;
+    Logger tb_logger = Logger("../logfile.txt");
+    bool was_modified = false;
 
 public:
-    TextBuffer(const std::string& filepath);
+    explicit TextBuffer(const std::string& filepath);
 
-    bool loadFile(const std::string& filepath);
+    bool load_file(const std::string& filepath);
 
-    void revertBuffer();
-    void revertBuffer(std::vector<std::string> newBuffer);
+    [[maybe_unused]] void revert_buffer();
+    void revert_buffer(std::vector<std::string> new_buffer);
 
-    std::size_t lineCount() const;
+    std::size_t line_count() const;
 
     // turns gapbuffer to string if buffer[index] is gb
-    const std::string getLine(std::size_t index) const;
+    std::string get_line(std::size_t index) const;
 
-    const std::size_t getLineLength(std::size_t index) const;
+    std::size_t get_line_length(std::size_t index) const;
 
-    bool isModified() const;
-    void setModified(const bool& value);
-    // has to make original editted line a string and new line a gapbuffer
-    void switchLine(std::size_t newLineIdx);
+    bool is_modified() const;
+    void set_modified(const bool& value);
 
-    void moveCursor(const Cursor& cursor);
-    void moveCursor(const CursorManager& newCursor);
+    // has to make original edited line a string and new line a gapbuffer
+    void switch_line(std::size_t new_line_idx);
 
-    void insert(const Cursor& cursor, const char c);
-    void insert(const CursorManager& cm, const char c);
+    void move_cursor(const Cursor& cursor);
+    void move_cursor(const CursorManager& new_cm);
+
+    void insert(const Cursor& cursor, char c);
+    void insert(const CursorManager& cm, char c);
 
     void erase(const Cursor& cursor);
     void erase(const CursorManager& cm);
-    void deleteRange(const Cursor& start, const Cursor& end, Logger& logger);
+    void delete_range(const Cursor& start, const Cursor& end, Logger& logger);
 
-    // newLine at index cm.row + 1
-    void newLine(const CursorManager& cm);
-    void deleteLine(const CursorManager& cm);
-    void deleteLine(const std::size_t lineIdx);
+    // new_line at index cm.row + 1
+    void new_line(const CursorManager& cm);
+    void delete_line(const CursorManager& cm);
+    void delete_line(std::size_t line_idx);
 };

@@ -73,7 +73,7 @@ NotcursesTUI::NotcursesTUI(const TextBuffer& buffer, std::string_view file)
     max_col = static_cast<std::size_t>(ucols);
 
     // Initialize line number area based on buffer contents
-    const std::size_t line_count = buffer.lineCount();
+    const std::size_t line_count = buffer.line_count();
     line_number_length = line_count > 0 ? lengthofsize_t(line_count) : 1;
     max_line_col = line_number_length + 2; // Fixed padding of 2 columns
     create_planes();
@@ -107,10 +107,10 @@ void NotcursesTUI::render_file(const Cursor& cursor, const TextBuffer& buffer,
                                const std::optional<Cursor>& visual_end) {
     ncplane_erase(main_plane);
     ncplane_erase(line_plane);
-    resize(buffer.lineCount());
+    resize(buffer.line_count());
     for (std::size_t i = 0; i < max_row - 2; ++i) {
         const std::size_t line_index = i + view_offset;
-        if (line_index >= buffer.lineCount())
+        if (line_index >= buffer.line_count())
             break;
 
         // Line numbers
@@ -121,7 +121,7 @@ void NotcursesTUI::render_file(const Cursor& cursor, const TextBuffer& buffer,
             line_num.c_str());
 
         // Text content
-        std::string line_text = buffer.getLine(line_index);
+        std::string line_text = buffer.get_line(line_index);
         ncplane_printf_yx(main_plane, static_cast<int>(i), 0, "%s",
                           line_text.c_str());
 
@@ -177,7 +177,7 @@ void NotcursesTUI::render_file(const Cursor& cursor, const TextBuffer& buffer,
     ncplane_cursor_move_yx(main_plane, cursor_row, cursor_col);
     notcurses_cursor_enable(nc, cursor_row,
                             cursor_col + static_cast<int>(max_line_col));
-    render_tool_line(cursor, buffer.isModified());
+    render_tool_line(cursor, buffer.is_modified());
 }
 
 void NotcursesTUI::render_tool_line(const Cursor& cursor,

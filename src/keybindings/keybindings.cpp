@@ -20,7 +20,7 @@ std::unordered_map<std::string_view, std::function<void(Editor&)>> normalkeys =
              auto& cm = editor.getCm();
              auto cursor = cm.get();
              if (cursor.col <
-                 editor.getBuffer().getLineLength(cursor.row) - 1) {
+                 editor.getBuffer().get_line_length(cursor.row) - 1) {
                  cm.moveDir(Direction::Right);
              }
          }},
@@ -39,8 +39,8 @@ std::unordered_map<std::string_view, std::function<void(Editor&)>> normalkeys =
          [](Editor& editor) {
              auto& buffer = editor.getBuffer();
              auto& cm = editor.getCm();
-             editor.getBuffer().deleteLine(editor.getCm());
-             if (cm.get().row == buffer.lineCount()) {
+             editor.getBuffer().delete_line(editor.getCm());
+             if (cm.get().row == buffer.line_count()) {
                  cm.moveDir(Direction::Up);
              }
          }},
@@ -49,7 +49,7 @@ std::unordered_map<std::string_view, std::function<void(Editor&)>> normalkeys =
          [](Editor& editor) {
              auto& tb = editor.getBuffer();
              // length is 1 idx, position is 0 idx
-             editor.getCm().moveAbs({tb.lineCount() - 1, 0});
+             editor.getCm().moveAbs({tb.line_count() - 1, 0});
          }},
         {"gg", [](Editor& editor) { editor.getCm().moveAbs({0, 0}); }},
 };
@@ -79,7 +79,7 @@ std::unordered_map<std::string_view, std::function<void(Editor&)>> visualkeys =
         {"G",
          [](Editor& editor) {
              auto& tb = editor.getBuffer();
-             editor.getCm().moveAbs({tb.lineCount() - 1, 0});
+             editor.getCm().moveAbs({tb.line_count() - 1, 0});
              editor.setVisualEnd(editor.getCm().get());
          }},
         {"gg",
@@ -93,8 +93,8 @@ std::unordered_map<std::string_view, std::function<void(Editor&)>> visualkeys =
              VisualRange vr = editor.getVisualRange();
              Cursor start_cursor = vr.visual_start.value();
              Cursor end_cursor = vr.visual_end.value();
-             editor.getBuffer().deleteRange(start_cursor, end_cursor,
-                                            editor.getLogger());
+             editor.getBuffer().delete_range(start_cursor, end_cursor,
+                                             editor.getLogger());
              editor.getCm().moveAbs(start_cursor);
              editor.setMode(Mode::Normal);
          }},

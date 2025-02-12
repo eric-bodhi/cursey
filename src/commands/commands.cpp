@@ -21,7 +21,7 @@ std::unordered_map<std::string_view, std::function<void(Editor&)>> ftable = {
         "q!",
         [](Editor& editor) {
             editor.setShouldExit(true);
-            editor.getBuffer().setModified(false);
+            editor.getBuffer().set_modified(false);
         }
     },
     {

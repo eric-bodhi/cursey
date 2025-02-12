@@ -28,11 +28,11 @@ void Editor::writeFile() {
         return;
     }
 
-    for (std::size_t i = 0; i < buffer.lineCount(); i++) {
-        file << buffer.getLine(i) << '\n';
+    for (std::size_t i = 0; i < buffer.line_count(); i++) {
+        file << buffer.get_line(i) << '\n';
     }
     file.close();
-    buffer.setModified(false);
+    buffer.set_modified(false);
 }
 
 void Editor::setMode(Mode mode) {
@@ -63,14 +63,14 @@ void Editor::insertMode(int input) {
             buffer.erase(cm);
             cm.moveDir(Direction::Left);
         } else {
-            buffer.deleteLine(cm);
+            buffer.delete_line(cm);
             cm.moveDir(Direction::Up);
         }
         break;
     case NCKEY_ENTER: // Enter key
-        buffer.newLine(cm);
+        buffer.new_line(cm);
         cm.moveDir(Direction::Down);
-        buffer.moveCursor(cm);
+        buffer.move_cursor(cm);
         break;
     default:
         buffer.insert(cm, static_cast<char>(input));
@@ -154,7 +154,7 @@ void Editor::run() {
 
     while (true) {
         if (shouldExit) {
-            if (buffer.isModified()) {
+            if (buffer.is_modified()) {
                 tui.render_message("Changes not written, use ':w' or ':q!'");
                 shouldExit = false;
             } else {
