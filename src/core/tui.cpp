@@ -22,7 +22,8 @@ void NotcursesTUI::create_planes() {
     main_opts.cols = static_cast<int>(max_col - max_line_col);
     main_plane = ncplane_create(stdplane, &main_opts);
     uint64_t main_channel = 0;
-    ncchannels_set_bg_rgb(&main_channel, 0xADD8E6);
+    ncchannels_set_bg_rgb(&main_channel, 0x282C34);
+    ncchannels_set_fg_rgb(&main_channel, 0xABB2BF);
     ncplane_set_base(main_plane, " ", 0, main_channel);
 
     // Line number plane (left side)
@@ -33,7 +34,8 @@ void NotcursesTUI::create_planes() {
     line_opts.cols = static_cast<int>(max_line_col);
     line_plane = ncplane_create(stdplane, &line_opts);
     uint64_t line_number_channel = 0;
-    ncchannels_set_bg_rgb(&line_number_channel, 0xFFFF00);
+    ncchannels_set_bg_rgb(&line_number_channel, 0x282C34);
+    ncchannels_set_fg_rgb(&line_number_channel, 0x5C6370);
     ncplane_set_base(line_plane, " ", 0, line_number_channel);
 
     // Status/tool line plane (bottom - 2)
@@ -44,7 +46,7 @@ void NotcursesTUI::create_planes() {
     tool_opts.cols = static_cast<int>(max_col);
     tool_plane = ncplane_create(stdplane, &tool_opts);
     uint64_t tool_channel = 0;
-    ncchannels_set_bg_rgb(&tool_channel, 0xFF0000);
+    ncchannels_set_bg_rgb(&tool_channel, 0x282C34);
     ncplane_set_base(tool_plane, " ", 0, tool_channel);
 
     // Command line plane (bottom - 1)
@@ -54,6 +56,9 @@ void NotcursesTUI::create_planes() {
     cmd_opts.rows = 1;
     cmd_opts.cols = static_cast<int>(max_col);
     cmd_plane = ncplane_create(stdplane, &cmd_opts);
+    uint64_t cmd_channel = 0;
+    ncchannels_set_bg_rgb(&cmd_channel, 0x282C34);
+    ncplane_set_base(cmd_plane, " ", 0, cmd_channel);
 }
 
 NotcursesTUI::NotcursesTUI(const TextBuffer& buffer, std::string_view file)
@@ -161,11 +166,11 @@ void NotcursesTUI::render_file(const Cursor& cursor, const TextBuffer& buffer,
             ccell.gcluster = static_cast<unsigned char>(c);
             if (selected) {
                 ncchannels_set_bg_rgb(&ccell.channels,
-                                      0x666666); // Gray background
+                                      0xADD8E6); // Light blue background
             } else {
                 // Use default background
                 uint64_t main_channel = 0;
-                ncchannels_set_bg_rgb(&main_channel, 0xADD8E6);
+                ncchannels_set_bg_rgb(&main_channel, 0x282C34);
                 ccell.channels = main_channel;
             }
             ncplane_putc_yx(main_plane, i, col, &ccell);
