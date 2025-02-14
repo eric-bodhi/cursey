@@ -15,6 +15,7 @@ add_executable(main
   src/utils/deque_gb.cpp
   src/core/cursor.cpp
   src/core/viewportmanager.cpp
+  src/core/lex.cpp
   src/commands/commands.cpp
   src/keybindings/keybindings.cpp
 )

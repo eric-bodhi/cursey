@@ -4,8 +4,8 @@
 #include "textbuffer.h"
 #include <cmath>
 #include <notcurses/notcurses.h>
-#include <string>
 #include <optional>
+#include <string>
 
 struct TermBoundaries {
     std::size_t max_row;
@@ -26,7 +26,7 @@ private:
     std::size_t max_line_col;
     std::size_t line_number_length;
 
-    static std::size_t lengthofsize_t(std::size_t value) ;
+    static std::size_t lengthofsize_t(std::size_t value);
     void create_planes();
     void destroy_planes();
     Logger logger = Logger("../logfile.txt");
