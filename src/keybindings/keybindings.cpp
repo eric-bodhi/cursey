@@ -43,7 +43,6 @@ std::unordered_map<std::string, std::function<void(Editor&)>> normal_keys = {
     {"G",
      [](Editor& editor) {
          auto& tb = editor.get_buffer();
-         editor.get_logger().log(std::to_string(tb.line_count() - 1));
          editor.get_cm().move_abs({tb.line_count() - 1, 0});
      }},
     {"gg", [](Editor& editor) { editor.get_cm().move_abs({0, 0}); }},

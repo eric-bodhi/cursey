@@ -36,9 +36,11 @@ public:
     NotcursesTUI(const TextBuffer& buffer, std::string_view file);
     ~NotcursesTUI();
 
-    void resize_by_lineno(std::size_t line_count);
-    void resize_by_term();
+    // both return true if need to destroy/recreate planes
+    bool resize_by_lineno(std::size_t line_count);
+    bool resize_by_term();
     void resize(std::size_t line_count);
+
     void render_file(const Cursor& cursor, const TextBuffer& buffer,
                      std::size_t view_offset,
                      const std::optional<Cursor>& visual_start,

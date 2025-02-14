@@ -1,5 +1,11 @@
 test.txt
 notcurses/
+
+# All just helper files for devs
+logfile.txt
+test.txt
+script.py
+
 .cache
 *.o
 *.obj
@@ -28,6 +34,7 @@ notcurses/
 
 # Build directories
 build/
+cmake-build-debug/
 bin/
 lib/
 out/
@@ -50,6 +57,8 @@ Makefile
 .idea/
 *.iml
 .vscode/
+*.idx
+*.cache/
 
 # Logs and temporary files
 *.log

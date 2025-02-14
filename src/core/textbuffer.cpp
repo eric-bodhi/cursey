@@ -145,9 +145,7 @@ void TextBuffer::erase(const Cursor& cursor) {
             delete_line(cursor.row);
             return;
         }
-        tb_logger.log("1 " + gb_line.string_with_gap());
         gb_line.del();
-        tb_logger.log("2 " + gb_line.string_with_gap());
     }
     was_modified = true;
 }
@@ -179,7 +177,6 @@ void TextBuffer::delete_line(const CursorManager& cm) {
 }
 
 void TextBuffer::delete_line(const std::size_t line_idx) {
-    tb_logger.log("deleted " + std::to_string(line_idx));
     buffer.erase(buffer.begin() + line_idx);
     if (line_idx == 0 && line_count() == 1) {
         buffer.insert(buffer.begin() + line_idx, "");

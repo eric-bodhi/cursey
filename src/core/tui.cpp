@@ -95,37 +95,37 @@ NotcursesTUI::~NotcursesTUI() {
     notcurses_stop(nc);
 }
 
-void NotcursesTUI::resize_by_lineno(std::size_t line_count) {
+bool NotcursesTUI::resize_by_lineno(std::size_t line_count) {
     const std::size_t new_number_length =
         line_count > 0 ? lengthofsize_t(line_count) : 1;
     if (new_number_length == line_number_length)
-        return;
+        return false;
 
     line_number_length = new_number_length;
     max_line_col = new_number_length + 2; // Maintain fixed padding
+    return true;
 }
 
-void NotcursesTUI::resize_by_term() {
+bool NotcursesTUI::resize_by_term() {
+    bool needs_resize = false;
     unsigned int u_rows = 0, u_cols = 0;
     ncplane_dim_yx(stdplane, &u_rows, &u_cols);
-    logger.log("new term " + std::to_string(u_rows) + " " + std::to_string(u_cols));
-    logger.log("curr term " + std::to_string(max_row) + " " + std::to_string(max_col));
     if (max_row != u_rows) {
         max_row = u_rows;
-        logger.log("updated max_row");
+        needs_resize = true;
     }
     if (max_col != u_cols) {
         max_col = u_cols;
-        logger.log("updated max_col");
+        needs_resize = true;
     }
-    logger.log("changed term " + std::to_string(max_row) + " " + std::to_string(max_col));
+    return needs_resize;
 }
 
 void NotcursesTUI::resize(std::size_t line_count) {
-    resize_by_term();
-    resize_by_lineno(line_count);
-    destroy_planes();
-    create_planes();
+    if (resize_by_term() || resize_by_lineno(line_count)) {
+        destroy_planes();
+        create_planes();
+    }
 }
 
 void NotcursesTUI::render_file(const Cursor& cursor, const TextBuffer& buffer,
