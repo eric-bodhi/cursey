@@ -54,7 +54,7 @@ void CursorManager::move_dir(Direction direction) {
 }
 
 void CursorManager::move_abs(const Cursor& pos) {
-    if (pos.row <= m_cursor.row &&
+    if (pos.row <= m_buffer.line_count() &&
         pos.col < m_buffer.get_line_length(pos.row)) {
         m_cursor.col = pos.col;
         m_cursor.row = pos.row;

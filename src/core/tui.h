@@ -28,6 +28,7 @@ private:
 
     static std::size_t lengthofsize_t(std::size_t value) ;
     void create_planes();
+    void destroy_planes();
     Logger logger = Logger("../logfile.txt");
     const std::string filename;
 
@@ -35,6 +36,8 @@ public:
     NotcursesTUI(const TextBuffer& buffer, std::string_view file);
     ~NotcursesTUI();
 
+    void resize_by_lineno(std::size_t line_count);
+    void resize_by_term();
     void resize(std::size_t line_count);
     void render_file(const Cursor& cursor, const TextBuffer& buffer,
                      std::size_t view_offset,

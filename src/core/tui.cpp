@@ -61,6 +61,13 @@ void NotcursesTUI::create_planes() {
     ncplane_set_base(cmd_plane, " ", 0, cmd_channel);
 }
 
+void NotcursesTUI::destroy_planes() {
+    ncplane_destroy(main_plane);
+    ncplane_destroy(line_plane);
+    ncplane_destroy(tool_plane);
+    ncplane_destroy(cmd_plane);
+}
+
 NotcursesTUI::NotcursesTUI(const TextBuffer& buffer, std::string_view file)
     : filename(file) {
     notcurses_options opts{};
@@ -88,21 +95,36 @@ NotcursesTUI::~NotcursesTUI() {
     notcurses_stop(nc);
 }
 
-void NotcursesTUI::resize(std::size_t line_count) {
+void NotcursesTUI::resize_by_lineno(std::size_t line_count) {
     const std::size_t new_number_length =
         line_count > 0 ? lengthofsize_t(line_count) : 1;
     if (new_number_length == line_number_length)
         return;
 
-    // Destroy and recreate planes with new dimensions
-    ncplane_destroy(main_plane);
-    ncplane_destroy(line_plane);
-    ncplane_destroy(tool_plane);
-    ncplane_destroy(cmd_plane);
-
     line_number_length = new_number_length;
     max_line_col = new_number_length + 2; // Maintain fixed padding
+}
 
+void NotcursesTUI::resize_by_term() {
+    unsigned int u_rows = 0, u_cols = 0;
+    ncplane_dim_yx(stdplane, &u_rows, &u_cols);
+    logger.log("new term " + std::to_string(u_rows) + " " + std::to_string(u_cols));
+    logger.log("curr term " + std::to_string(max_row) + " " + std::to_string(max_col));
+    if (max_row != u_rows) {
+        max_row = u_rows;
+        logger.log("updated max_row");
+    }
+    if (max_col != u_cols) {
+        max_col = u_cols;
+        logger.log("updated max_col");
+    }
+    logger.log("changed term " + std::to_string(max_row) + " " + std::to_string(max_col));
+}
+
+void NotcursesTUI::resize(std::size_t line_count) {
+    resize_by_term();
+    resize_by_lineno(line_count);
+    destroy_planes();
     create_planes();
 }
 

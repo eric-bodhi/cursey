@@ -1,6 +1,6 @@
 test.txt
+notcurses/
 .cache
-externals/
 *.o
 *.obj
 
