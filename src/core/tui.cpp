@@ -197,7 +197,7 @@ void NotcursesTUI::render_file(const Cursor& cursor, const TextBuffer& buffer,
     ncplane_cursor_move_yx(main_plane, cursor.row, cursor_col);
     notcurses_cursor_enable(nc, cursor.row,
                             cursor_col + static_cast<int>(max_line_col));
-    render_tool_line(cursor, buffer.is_modified());
+    render_tool_line({cursor.row + view_offset, cursor.col}, buffer.is_modified());
 }
 
 void NotcursesTUI::render_tool_line(const Cursor& cursor,
