@@ -48,6 +48,7 @@ public:
     void render_tool_line(const Cursor& cursor, const bool& was_modified);
     void render_command_line(const std::string& command);
     void render_message(const std::string& message);
+    bool is_selected(const Cursor& pos, const Cursor& start, const Cursor& end);
 
     TermBoundaries get_terminal_size() const;
     int get_char();

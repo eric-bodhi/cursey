@@ -181,7 +181,8 @@ void NotcursesTUI::render_file(const Cursor& cursor, const TextBuffer& buffer,
 
             uint64_t channels = 0;
             ncchannels_set_fg_rgb(&channels, lex::color_map[type]);
-            ncchannels_set_bg_rgb(&channels, selected ? lex::selection_bg : lex::bg_rgb);
+            ncchannels_set_bg_rgb(&channels,
+                                  selected ? lex::selection_bg : lex::bg_rgb);
 
             nccell cell = {};
             cell.gcluster = c;
@@ -193,11 +194,9 @@ void NotcursesTUI::render_file(const Cursor& cursor, const TextBuffer& buffer,
     // Cursor handling
     const int cursor_row = static_cast<int>(cursor.row - view_offset);
     const int cursor_col = static_cast<int>(cursor.col);
-    if (cursor_row >= 0 && cursor_row < static_cast<int>(max_row - 2)) {
-        ncplane_cursor_move_yx(main_plane, cursor_row, cursor_col);
-        notcurses_cursor_enable(nc, cursor_row,
-                                cursor_col + static_cast<int>(max_line_col));
-    }
+    ncplane_cursor_move_yx(main_plane, cursor.row, cursor_col);
+    notcurses_cursor_enable(nc, cursor.row,
+                            cursor_col + static_cast<int>(max_line_col));
     render_tool_line(cursor, buffer.is_modified());
 }
 
