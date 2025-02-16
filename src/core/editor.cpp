@@ -10,7 +10,6 @@
 #include <string>
 
 // A helper to convert an integer key to a string.
-// (Alternatively, std::to_string could be used directly.)
 std::string int_to_str(int value) {
     return {static_cast<char>(value)};
 }
@@ -63,6 +62,9 @@ void Editor::insert_mode(int input) {
             buffer.erase(cm);
             cm.move_dir(Direction::Left);
         } else {
+            if (cm.get().row > 0) {
+                buffer.insert({cm.get().row - 1, cm.get().col}, buffer.get_line(cm.get().row));
+            }
             buffer.delete_line(cm);
             cm.move_dir(Direction::Up);
         }

@@ -43,6 +43,7 @@ public:
     void move_cursor(const CursorManager& new_cm);
 
     void insert(const Cursor& cursor, char c);
+    void insert(const Cursor& cursor, std::string string);
     void insert(const CursorManager& cm, char c);
 
     void erase(const Cursor& cursor);

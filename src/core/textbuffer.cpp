@@ -8,6 +8,9 @@
 
 TextBuffer::TextBuffer(const std::string& filepath) {
     load_file(filepath);
+    if (buffer.empty()) {
+        buffer.emplace_back("");
+    }
     buffer.at(0) = GapBuffer(get_line(0));
 
     // populate unwritten buffer
@@ -131,6 +134,17 @@ void TextBuffer::insert(const Cursor& cursor, const char c) {
 
 void TextBuffer::insert(const CursorManager& cm, const char c) {
     insert(cm.get(), c);
+}
+
+void TextBuffer::insert(const Cursor& cursor, std::string string) {
+    move_cursor(cursor);
+    if (std::holds_alternative<GapBuffer>(buffer.at(cursor.row))) {
+        GapBuffer& gb_line = std::get<GapBuffer>(buffer.at(cursor.row));
+        auto it = string.begin();
+        for (std::size_t _ = 0; _ < string.size(); ++_) {
+            gb_line.insert(*it++);
+        }
+    }
 }
 
 void TextBuffer::erase(const CursorManager& cm) {

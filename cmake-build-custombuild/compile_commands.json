@@ -1,0 +1,74 @@
+[
+{
+  "directory": "/home/eric/github/cursey/cmake-build-custombuild",
+  "command": "/usr/bin/c++  -I/usr/lib/llvm-18/include -O3 -DNDEBUG -std=gnu++20 -fdiagnostics-color=always -o CMakeFiles/main.dir/main.cpp.o -c /home/eric/github/cursey/main.cpp",
+  "file": "/home/eric/github/cursey/main.cpp",
+  "output": "CMakeFiles/main.dir/main.cpp.o"
+},
+{
+  "directory": "/home/eric/github/cursey/cmake-build-custombuild",
+  "command": "/usr/bin/c++  -I/usr/lib/llvm-18/include -O3 -DNDEBUG -std=gnu++20 -fdiagnostics-color=always -o CMakeFiles/main.dir/src/core/tui.cpp.o -c /home/eric/github/cursey/src/core/tui.cpp",
+  "file": "/home/eric/github/cursey/src/core/tui.cpp",
+  "output": "CMakeFiles/main.dir/src/core/tui.cpp.o"
+},
+{
+  "directory": "/home/eric/github/cursey/cmake-build-custombuild",
+  "command": "/usr/bin/c++  -I/usr/lib/llvm-18/include -O3 -DNDEBUG -std=gnu++20 -fdiagnostics-color=always -o CMakeFiles/main.dir/src/core/textbuffer.cpp.o -c /home/eric/github/cursey/src/core/textbuffer.cpp",
+  "file": "/home/eric/github/cursey/src/core/textbuffer.cpp",
+  "output": "CMakeFiles/main.dir/src/core/textbuffer.cpp.o"
+},
+{
+  "directory": "/home/eric/github/cursey/cmake-build-custombuild",
+  "command": "/usr/bin/c++  -I/usr/lib/llvm-18/include -O3 -DNDEBUG -std=gnu++20 -fdiagnostics-color=always -o CMakeFiles/main.dir/src/core/editor.cpp.o -c /home/eric/github/cursey/src/core/editor.cpp",
+  "file": "/home/eric/github/cursey/src/core/editor.cpp",
+  "output": "CMakeFiles/main.dir/src/core/editor.cpp.o"
+},
+{
+  "directory": "/home/eric/github/cursey/cmake-build-custombuild",
+  "command": "/usr/bin/c++  -I/usr/lib/llvm-18/include -O3 -DNDEBUG -std=gnu++20 -fdiagnostics-color=always -o CMakeFiles/main.dir/src/utils/log.cpp.o -c /home/eric/github/cursey/src/utils/log.cpp",
+  "file": "/home/eric/github/cursey/src/utils/log.cpp",
+  "output": "CMakeFiles/main.dir/src/utils/log.cpp.o"
+},
+{
+  "directory": "/home/eric/github/cursey/cmake-build-custombuild",
+  "command": "/usr/bin/c++  -I/usr/lib/llvm-18/include -O3 -DNDEBUG -std=gnu++20 -fdiagnostics-color=always -o CMakeFiles/main.dir/src/utils/deque_gb.cpp.o -c /home/eric/github/cursey/src/utils/deque_gb.cpp",
+  "file": "/home/eric/github/cursey/src/utils/deque_gb.cpp",
+  "output": "CMakeFiles/main.dir/src/utils/deque_gb.cpp.o"
+},
+{
+  "directory": "/home/eric/github/cursey/cmake-build-custombuild",
+  "command": "/usr/bin/c++  -I/usr/lib/llvm-18/include -O3 -DNDEBUG -std=gnu++20 -fdiagnostics-color=always -o CMakeFiles/main.dir/src/core/cursor.cpp.o -c /home/eric/github/cursey/src/core/cursor.cpp",
+  "file": "/home/eric/github/cursey/src/core/cursor.cpp",
+  "output": "CMakeFiles/main.dir/src/core/cursor.cpp.o"
+},
+{
+  "directory": "/home/eric/github/cursey/cmake-build-custombuild",
+  "command": "/usr/bin/c++  -I/usr/lib/llvm-18/include -O3 -DNDEBUG -std=gnu++20 -fdiagnostics-color=always -o CMakeFiles/main.dir/src/core/viewportmanager.cpp.o -c /home/eric/github/cursey/src/core/viewportmanager.cpp",
+  "file": "/home/eric/github/cursey/src/core/viewportmanager.cpp",
+  "output": "CMakeFiles/main.dir/src/core/viewportmanager.cpp.o"
+},
+{
+  "directory": "/home/eric/github/cursey/cmake-build-custombuild",
+  "command": "/usr/bin/c++  -I/usr/lib/llvm-18/include -O3 -DNDEBUG -std=gnu++20 -fdiagnostics-color=always -o CMakeFiles/main.dir/src/core/lex.cpp.o -c /home/eric/github/cursey/src/core/lex.cpp",
+  "file": "/home/eric/github/cursey/src/core/lex.cpp",
+  "output": "CMakeFiles/main.dir/src/core/lex.cpp.o"
+},
+{
+  "directory": "/home/eric/github/cursey/cmake-build-custombuild",
+  "command": "/usr/bin/c++  -I/usr/lib/llvm-18/include -O3 -DNDEBUG -std=gnu++20 -fdiagnostics-color=always -o CMakeFiles/main.dir/src/commands/commands.cpp.o -c /home/eric/github/cursey/src/commands/commands.cpp",
+  "file": "/home/eric/github/cursey/src/commands/commands.cpp",
+  "output": "CMakeFiles/main.dir/src/commands/commands.cpp.o"
+},
+{
+  "directory": "/home/eric/github/cursey/cmake-build-custombuild",
+  "command": "/usr/bin/c++  -I/usr/lib/llvm-18/include -O3 -DNDEBUG -std=gnu++20 -fdiagnostics-color=always -o CMakeFiles/main.dir/src/keybindings/keybindings.cpp.o -c /home/eric/github/cursey/src/keybindings/keybindings.cpp",
+  "file": "/home/eric/github/cursey/src/keybindings/keybindings.cpp",
+  "output": "CMakeFiles/main.dir/src/keybindings/keybindings.cpp.o"
+},
+{
+  "directory": "/home/eric/github/cursey/cmake-build-custombuild",
+  "command": "/usr/bin/c++  -I/usr/lib/llvm-18/include -O3 -DNDEBUG -std=gnu++20 -fdiagnostics-color=always -o CMakeFiles/syntax.dir/syntax.cpp.o -c /home/eric/github/cursey/syntax.cpp",
+  "file": "/home/eric/github/cursey/syntax.cpp",
+  "output": "CMakeFiles/syntax.dir/syntax.cpp.o"
+}
+]
