@@ -62,11 +62,21 @@ void Editor::insert_mode(int input) {
             buffer.erase(cm);
             cm.move_dir(Direction::Left);
         } else {
+            std::size_t prev_line_length{};
             if (cm.get().row > 0) {
-                buffer.insert({cm.get().row - 1, cm.get().col}, buffer.get_line(cm.get().row));
+                prev_line_length = buffer.get_line_length(cm.get().row - 1);
+                logger.log("b4 " + std::to_string(prev_line_length));
+                (prev_line_length == 1) ? prev_line_length = 0
+                                        : prev_line_length;
+                buffer.insert({cm.get().row - 1, prev_line_length},
+                              buffer.get_line(cm.get().row));
             }
             buffer.delete_line(cm);
-            cm.move_dir(Direction::Up);
+            logger.log(std::to_string(prev_line_length));
+            logger.log(
+                std::to_string((prev_line_length == 1) ? 0 : prev_line_length));
+            cm.move_abs({cm.get().row - 1,
+                         (prev_line_length == 1) ? 0 : prev_line_length});
         }
         break;
     case NCKEY_ENTER: // Enter key
@@ -137,9 +147,9 @@ void Editor::update_view() {
                     m_visual_start, m_visual_end);
 }
 
-bool Editor::execute(const std::unordered_map<
-                         std::string, std::function<void(Editor&)>>& table,
-                     const std::string& cmd) {
+bool Editor::execute(
+    const std::unordered_map<std::string, std::function<void(Editor&)>>& table,
+    const std::string& cmd) {
     if (table.contains(cmd)) {
         table.at(cmd)(*this);
         return true;
