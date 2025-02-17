@@ -81,11 +81,11 @@ void Buffer::set_modified(const bool& value) {
 
 // turns gapbuffer back to string and new line to gapbuffer (to be edited)
 // where cm is the current cursor position
-void Buffer::switch_line(std::size_t new_line_idx) {
+void Buffer::switch_line(const std::size_t new_line_idx) {
     if (gb_idx != new_line_idx) {
         // Convert current line to string
         if (std::holds_alternative<GapBuffer>(buffer.at(gb_idx))) {
-            GapBuffer& gb_line = std::get<GapBuffer>(buffer.at(gb_idx));
+            auto& gb_line = std::get<GapBuffer>(buffer.at(gb_idx));
             buffer.at(gb_idx) = gb_line.to_string();
         }
 
@@ -94,7 +94,7 @@ void Buffer::switch_line(std::size_t new_line_idx) {
 
         // Convert new line to GapBuffer if it's a string
         if (std::holds_alternative<std::string>(buffer.at(new_line_idx))) {
-            std::string line_str =
+            const auto line_str =
                 std::get<std::string>(buffer.at(new_line_idx));
             buffer.at(new_line_idx) = GapBuffer(line_str);
             gb_idx = new_line_idx;
@@ -126,7 +126,7 @@ void Buffer::move_cursor(const Cursor& cursor) {
 void Buffer::insert(const Cursor& cursor, const char c) {
     move_cursor(cursor);
     if (std::holds_alternative<GapBuffer>(buffer.at(cursor.row))) {
-        GapBuffer& gb_line = std::get<GapBuffer>(buffer.at(cursor.row));
+        auto& gb_line = std::get<GapBuffer>(buffer.at(cursor.row));
         gb_line.insert(c);
     }
     was_modified = true;
@@ -139,7 +139,7 @@ void Buffer::insert(const CursorManager& cm, const char c) {
 void Buffer::insert(const Cursor& cursor, std::string string) {
     move_cursor(cursor);
     if (std::holds_alternative<GapBuffer>(buffer.at(cursor.row))) {
-        GapBuffer& gb_line = std::get<GapBuffer>(buffer.at(cursor.row));
+        auto& gb_line = std::get<GapBuffer>(buffer.at(cursor.row));
         auto it = string.begin();
         for (std::size_t _ = 0; _ < string.size(); ++_) {
             gb_line.insert(*it++);
@@ -154,7 +154,7 @@ void Buffer::erase(const CursorManager& cm) {
 void Buffer::erase(const Cursor& cursor) {
     move_cursor(cursor);
     if (std::holds_alternative<GapBuffer>(buffer.at(cursor.row))) {
-        GapBuffer& gb_line = std::get<GapBuffer>(buffer.at(cursor.row));
+        auto& gb_line = std::get<GapBuffer>(buffer.at(cursor.row));
         if (gb_line.size() == 0 && cursor.row != 0) {
             delete_line(cursor.row);
             return;
@@ -165,14 +165,14 @@ void Buffer::erase(const Cursor& cursor) {
 }
 
 void Buffer::new_line(const CursorManager& cm) {
-    std::size_t line_idx = cm.get().row;
+    const std::size_t line_idx = cm.get().row;
     auto line = get_line(line_idx);
-    const std::string new_line =
-        std::string(line.begin() + cm.get().col, line.end());
+    const auto new_line =
+        std::string(line.begin() + static_cast<int>(cm.col()), line.end());
     if (new_line.empty()) {
-        buffer.insert(buffer.begin() + line_idx + 1, " ");
+        buffer.insert(buffer.begin() + static_cast<int>(line_idx + 1), " ");
     } else {
-        buffer.insert(buffer.begin() + line_idx + 1, new_line);
+        buffer.insert(buffer.begin() + static_cast<int>(line_idx + 1), new_line);
     }
 
     // set line before accordingly
@@ -180,7 +180,7 @@ void Buffer::new_line(const CursorManager& cm) {
         buffer.at(line_idx) = " ";
     } else {
         buffer.at(line_idx) =
-            std::string(line.begin(), line.begin() + cm.get().col);
+            std::string(line.begin(), line.begin() + static_cast<int>(cm.col()));
     }
     was_modified = true;
 }
@@ -191,9 +191,9 @@ void Buffer::delete_line(const CursorManager& cm) {
 }
 
 void Buffer::delete_line(const std::size_t line_idx) {
-    buffer.erase(buffer.begin() + line_idx);
+    buffer.erase(buffer.begin() + static_cast<int>(line_idx));
     if (line_idx == 0 && line_count() == 1) {
-        buffer.insert(buffer.begin() + line_idx, "");
+        buffer.insert(buffer.begin() + static_cast<int>(line_idx), "");
     } else if (line_count() - 1 == line_idx && line_idx != 0) {
 
         switch_line(line_idx - 1);
@@ -201,8 +201,7 @@ void Buffer::delete_line(const std::size_t line_idx) {
     was_modified = true;
 }
 
-void Buffer::delete_range(const Cursor& start, const Cursor& end,
-                              Logger& logger) {
+void Buffer::delete_range(const Cursor &start, const Cursor &end) {
     Cursor actual_start = start;
     Cursor actual_end = end;
 
@@ -237,7 +236,7 @@ void Buffer::delete_range(const Cursor& start, const Cursor& end,
         // Capture the remaining part of the end line
         const std::string end_line = get_line(actual_end.row);
         const std::size_t end_col_plus1 = actual_end.col + 1;
-        const std::string remaining = (end_col_plus1 <= end_line.size())
+        const std::string remaining = end_col_plus1 <= end_line.size()
                                     ? end_line.substr(end_col_plus1)
                                     : "";
 

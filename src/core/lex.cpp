@@ -102,8 +102,8 @@ std::vector<std::string> tokenize(const std::string& line) {
                 current.clear();
             }
             current += c;
-            in_string = (c == '"');
-            in_char = (c == '\'');
+            in_string = c == '"';
+            in_char = c == '\'';
             continue;
         }
 
@@ -234,9 +234,9 @@ void highlight_line(const std::string& line,
         }
 
         for (size_t j = 0; j < token.size(); ++j) {
-            callback(x + j, type, token[j]);
+            callback(static_cast<int>(x + j), type, token[j]);
         }
-        x += token.size();
+        x += static_cast<int>(token.size());
     }
 }
 

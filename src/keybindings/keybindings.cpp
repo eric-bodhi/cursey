@@ -84,8 +84,7 @@ std::unordered_map<std::string, std::function<void(Editor&)>> visual_keys = {
          auto [visual_start, visual_end] = editor.get_visual_range();
          const Cursor start_cursor = visual_start.value();
          const Cursor end_cursor = visual_end.value();
-         editor.get_buffer().delete_range(start_cursor, end_cursor,
-                                          editor.get_logger());
+         editor.get_buffer().delete_range(start_cursor, end_cursor);
          editor.get_cm().move_abs(start_cursor);
          editor.set_mode(Mode::Normal);
      }},

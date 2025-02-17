@@ -166,12 +166,12 @@ void NotcursesTUI::render_file(const Cursor& cursor, const Buffer& buffer,
                     line_index <= actual_end.row) {
                     if (actual_start.row == actual_end.row) {
                         selected =
-                            (col >= actual_start.col && col <= actual_end.col);
+                            col >= actual_start.col && col <= actual_end.col;
                     } else {
                         if (line_index == actual_start.row) {
-                            selected = (col >= actual_start.col);
+                            selected = col >= actual_start.col;
                         } else if (line_index == actual_end.row) {
-                            selected = (col <= actual_end.col);
+                            selected = col <= actual_end.col;
                         } else {
                             selected = true;
                         }
@@ -185,16 +185,16 @@ void NotcursesTUI::render_file(const Cursor& cursor, const Buffer& buffer,
                                   selected ? lex::selection_bg : lex::bg_rgb);
 
             nccell cell = {};
-            cell.gcluster = c;
+            cell.gcluster = static_cast<unsigned char>(c);
             cell.channels = channels;
-            ncplane_putc_yx(main_plane, i, col, &cell);
+            ncplane_putc_yx(main_plane, static_cast<int>(i), col, &cell);
         });
     }
 
     // Cursor handling
     const int cursor_col = static_cast<int>(cursor.col);
-    ncplane_cursor_move_yx(main_plane, cursor.row, cursor_col);
-    notcurses_cursor_enable(nc, cursor.row,
+    ncplane_cursor_move_yx(main_plane, static_cast<int>(cursor.row), cursor_col);
+    notcurses_cursor_enable(nc, static_cast<int>(cursor.row),
                             cursor_col + static_cast<int>(max_line_col));
     render_tool_line({cursor.row + view_offset, cursor.col},
                      buffer.is_modified());
@@ -207,7 +207,7 @@ void NotcursesTUI::render_tool_line(const Cursor& cursor,
         std::to_string(cursor.row + 1) + "," + std::to_string(cursor.col + 1);
     ncplane_printf_yx(tool_plane, 0, 0, "%s", filename.c_str());
     if (was_modified) {
-        ncplane_printf_yx(tool_plane, 0, filename.size() + 1, "%s", "[+]");
+        ncplane_printf_yx(tool_plane, 0, static_cast<int>(filename.size() + 1), "%s", "[+]");
     }
     ncplane_printf_yx(tool_plane, 0,
                       static_cast<int>(max_col - pos_str.length()), "%s",

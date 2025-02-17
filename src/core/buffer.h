@@ -48,7 +48,7 @@ public:
 
     void erase(const Cursor& cursor);
     void erase(const CursorManager& cm);
-    void delete_range(const Cursor& start, const Cursor& end, Logger& logger);
+    void delete_range(const Cursor &start, const Cursor &end);
 
     // new_line at index cm.row + 1
     void new_line(const CursorManager& cm);

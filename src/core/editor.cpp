@@ -15,8 +15,8 @@ std::string int_to_str(const int value) {
 }
 
 Editor::Editor(const std::string& filepath)
-    : tui(buffer, filepath), buffer(filepath), viewport({0, 0}),
-      cm(buffer), m_filepath(filepath),
+    : tui(buffer, filepath), cm(buffer), viewport({0, 0}),
+      buffer(filepath), m_filepath(filepath),
       should_exit(false) {
 }
 
@@ -65,14 +65,14 @@ void Editor::insert_mode(const int input) {
             std::size_t prev_line_length{};
             if (cm.row() > 0) {
                 prev_line_length = buffer.get_line_length(cm.row() - 1);
-                (prev_line_length == 1) ? prev_line_length = 0
+                prev_line_length == 1 ? prev_line_length = 0
                                         : prev_line_length;
                 buffer.insert({cm.row() - 1, prev_line_length},
                               buffer.get_line(cm.row()));
 
                 buffer.delete_line(cm);
                 cm.move_abs({cm.row() - 1,
-                             (prev_line_length == 1) ? 0 : prev_line_length});
+                             prev_line_length == 1 ? 0 : prev_line_length});
             }
         }
         break;
@@ -98,7 +98,8 @@ void Editor::command_mode() {
         if (ch == NCKEY_ESC) { // ESC key
             curr_mode = Mode::Normal;
             return;
-        } else if (ch == NCKEY_BACKSPACE) { // Backspace
+        }
+        if (ch == NCKEY_BACKSPACE) { // Backspace
             if (cmd.empty()) {
                 curr_mode = Mode::Normal;
                 return;
@@ -156,9 +157,9 @@ bool Editor::execute(
 }
 
 void Editor::run() {
-    int input;
+    int input = 0;
     int last_input = 0;
-    Mode last_mode = Mode::Normal;
+    auto last_mode = Mode::Normal;
     // Initial render.
     update_view();
 
@@ -172,7 +173,7 @@ void Editor::run() {
             }
         }
 
-        if (TermBoundaries curr_term_size = tui.get_terminal_size(); curr_term_size.max_row != viewport.get_max_row() + 2 ||
+        if (const TermBoundaries curr_term_size = tui.get_terminal_size(); curr_term_size.max_row != viewport.get_max_row() + 2 ||
                                                                      curr_term_size.max_col != viewport.get_max_col()) {
             viewport.update_term_size(curr_term_size);
         }
@@ -191,7 +192,7 @@ void Editor::run() {
 
         switch (curr_mode) {
         case Mode::Normal:
-            tui.set_cursor_mode(CursorMode::Block);
+            NotcursesTUI::set_cursor_mode(CursorMode::Block);
             tui.render_message("");
             if (!execute(Keybindings::normal_keys, int_to_str(input))) {
                 if (execute(Keybindings::normal_keys,
@@ -203,7 +204,7 @@ void Editor::run() {
             break;
         case Mode::Insert:
             insert_mode(input);
-            tui.set_cursor_mode(CursorMode::Bar);
+            NotcursesTUI::set_cursor_mode(CursorMode::Bar);
             tui.render_message("-- INSERT --");
             break;
         case Mode::Command:
@@ -220,9 +221,9 @@ void Editor::run() {
         // Update the cursor shape if the mode has changed.
         if (curr_mode != last_mode) {
             if (curr_mode == Mode::Insert) {
-                tui.set_cursor_mode(CursorMode::Bar);
+                NotcursesTUI::set_cursor_mode(CursorMode::Bar);
             } else {
-                tui.set_cursor_mode(CursorMode::Block);
+                NotcursesTUI::set_cursor_mode(CursorMode::Block);
             }
             last_mode = curr_mode;
         }
