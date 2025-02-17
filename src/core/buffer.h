@@ -10,7 +10,7 @@
 // forward decl
 class CursorManager;
 
-class TextBuffer {
+class Buffer {
 private:
     std::vector<std::variant<std::string, GapBuffer>> buffer;
     std::vector<std::string> original_buffer;
@@ -19,7 +19,7 @@ private:
     bool was_modified = false;
 
 public:
-    explicit TextBuffer(const std::string& filepath);
+    explicit Buffer(const std::string& filepath);
 
     bool load_file(const std::string& filepath);
 

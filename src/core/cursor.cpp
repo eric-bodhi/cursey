@@ -1,7 +1,7 @@
 #include "cursor.h"
 #include "../defs.h"
 
-CursorManager::CursorManager(TextBuffer& buffer, std::size_t max_r,
+CursorManager::CursorManager(Buffer& buffer, std::size_t max_r,
                              const Cursor& arg_cursor)
     : m_buffer(buffer), max_row(max_r), m_cursor(arg_cursor) {};
 

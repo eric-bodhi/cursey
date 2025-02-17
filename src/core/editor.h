@@ -3,7 +3,7 @@
 #include "../utils/log.h"
 #include "cursor.h"
 #include "editor.h"
-#include "textbuffer.h"
+#include "buffer.h"
 #include "tui.h"
 #include "viewportmanager.h"
 #include <functional>
@@ -25,7 +25,7 @@ private:
     NotcursesTUI tui;
     CursorManager cm;
     ViewportManager viewport;
-    TextBuffer buffer;
+    Buffer buffer;
     std::string m_filepath;
     bool should_exit;
 
@@ -51,7 +51,7 @@ public:
                  const std::string& cmd);
     void update_view();
 
-    TextBuffer& get_buffer();
+    Buffer& get_buffer();
     CursorManager& get_cm();
     Logger& get_logger();
     const std::string& get_filepath();

@@ -69,7 +69,7 @@ void NotcursesTUI::destroy_planes() {
     ncplane_destroy(cmd_plane);
 }
 
-NotcursesTUI::NotcursesTUI(const TextBuffer& buffer, std::string_view file)
+NotcursesTUI::NotcursesTUI(const Buffer& buffer, std::string_view file)
     : filename(file) {
     notcurses_options opts{};
     nc = notcurses_init(&opts, stdout);
@@ -129,7 +129,7 @@ void NotcursesTUI::resize(std::size_t line_count) {
     }
 }
 
-void NotcursesTUI::render_file(const Cursor& cursor, const TextBuffer& buffer,
+void NotcursesTUI::render_file(const Cursor& cursor, const Buffer& buffer,
                                std::size_t view_offset,
                                const std::optional<Cursor>& visual_start,
                                const std::optional<Cursor>& visual_end) {

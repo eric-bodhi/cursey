@@ -1,4 +1,4 @@
-#include "textbuffer.h"
+#include "buffer.h"
 #include "../utils/deque_gb.h"
 #include <cmath>
 #include <fstream>
@@ -6,7 +6,7 @@
 #include <string>
 #include <variant>
 
-TextBuffer::TextBuffer(const std::string& filepath) {
+Buffer::Buffer(const std::string& filepath) {
     load_file(filepath);
     if (buffer.empty()) {
         buffer.emplace_back("");
@@ -23,7 +23,7 @@ TextBuffer::TextBuffer(const std::string& filepath) {
     }
 }
 
-bool TextBuffer::load_file(const std::string& filepath) {
+bool Buffer::load_file(const std::string& filepath) {
     std::ifstream file(filepath);
 
     if (!file.is_open()) {
@@ -42,7 +42,7 @@ bool TextBuffer::load_file(const std::string& filepath) {
     return true;
 }
 
-void TextBuffer::revert_buffer(std::vector<std::string> new_buffer) {
+void Buffer::revert_buffer(std::vector<std::string> new_buffer) {
     buffer.clear();
     for (const auto& line : new_buffer) {
         buffer.emplace_back(line);
@@ -50,15 +50,15 @@ void TextBuffer::revert_buffer(std::vector<std::string> new_buffer) {
     buffer.at(0) = GapBuffer(get_line(0));
 }
 
-[[maybe_unused]] void TextBuffer::revert_buffer() {
+[[maybe_unused]] void Buffer::revert_buffer() {
     revert_buffer(original_buffer);
 }
 
-std::size_t TextBuffer::line_count() const {
+std::size_t Buffer::line_count() const {
     return buffer.size();
 }
 
-std::string TextBuffer::get_line(std::size_t index) const {
+std::string Buffer::get_line(std::size_t index) const {
     auto& line = buffer.at(index);
     if (std::holds_alternative<GapBuffer>(line)) {
         return std::get<GapBuffer>(line).to_string();
@@ -67,21 +67,21 @@ std::string TextBuffer::get_line(std::size_t index) const {
     return std::get<std::string>(line);
 }
 
-std::size_t TextBuffer::get_line_length(std::size_t index) const {
+std::size_t Buffer::get_line_length(std::size_t index) const {
     return get_line(index).length();
 }
 
-bool TextBuffer::is_modified() const {
+bool Buffer::is_modified() const {
     return was_modified;
 }
 
-void TextBuffer::set_modified(const bool& value) {
+void Buffer::set_modified(const bool& value) {
     was_modified = value;
 }
 
 // turns gapbuffer back to string and new line to gapbuffer (to be edited)
 // where cm is the current cursor position
-void TextBuffer::switch_line(std::size_t new_line_idx) {
+void Buffer::switch_line(std::size_t new_line_idx) {
     if (gb_idx != new_line_idx) {
         // Convert current line to string
         if (std::holds_alternative<GapBuffer>(buffer.at(gb_idx))) {
@@ -102,7 +102,7 @@ void TextBuffer::switch_line(std::size_t new_line_idx) {
     }
 }
 
-void TextBuffer::move_cursor(const CursorManager& new_cm) {
+void Buffer::move_cursor(const CursorManager& new_cm) {
     auto new_cursor = new_cm.get();
     if (gb_idx != new_cursor.row) {
         switch_line(new_cursor.row);
@@ -113,7 +113,7 @@ void TextBuffer::move_cursor(const CursorManager& new_cm) {
     }
 }
 
-void TextBuffer::move_cursor(const Cursor& cursor) {
+void Buffer::move_cursor(const Cursor& cursor) {
     if (gb_idx != cursor.row) {
         switch_line(cursor.row);
     }
@@ -123,7 +123,7 @@ void TextBuffer::move_cursor(const Cursor& cursor) {
     }
 }
 
-void TextBuffer::insert(const Cursor& cursor, const char c) {
+void Buffer::insert(const Cursor& cursor, const char c) {
     move_cursor(cursor);
     if (std::holds_alternative<GapBuffer>(buffer.at(cursor.row))) {
         GapBuffer& gb_line = std::get<GapBuffer>(buffer.at(cursor.row));
@@ -132,11 +132,11 @@ void TextBuffer::insert(const Cursor& cursor, const char c) {
     was_modified = true;
 }
 
-void TextBuffer::insert(const CursorManager& cm, const char c) {
+void Buffer::insert(const CursorManager& cm, const char c) {
     insert(cm.get(), c);
 }
 
-void TextBuffer::insert(const Cursor& cursor, std::string string) {
+void Buffer::insert(const Cursor& cursor, std::string string) {
     move_cursor(cursor);
     if (std::holds_alternative<GapBuffer>(buffer.at(cursor.row))) {
         GapBuffer& gb_line = std::get<GapBuffer>(buffer.at(cursor.row));
@@ -147,11 +147,11 @@ void TextBuffer::insert(const Cursor& cursor, std::string string) {
     }
 }
 
-void TextBuffer::erase(const CursorManager& cm) {
+void Buffer::erase(const CursorManager& cm) {
     erase(cm.get());
 }
 
-void TextBuffer::erase(const Cursor& cursor) {
+void Buffer::erase(const Cursor& cursor) {
     move_cursor(cursor);
     if (std::holds_alternative<GapBuffer>(buffer.at(cursor.row))) {
         GapBuffer& gb_line = std::get<GapBuffer>(buffer.at(cursor.row));
@@ -164,7 +164,7 @@ void TextBuffer::erase(const Cursor& cursor) {
     was_modified = true;
 }
 
-void TextBuffer::new_line(const CursorManager& cm) {
+void Buffer::new_line(const CursorManager& cm) {
     std::size_t line_idx = cm.get().row;
     auto line = get_line(line_idx);
     const std::string new_line =
@@ -185,12 +185,12 @@ void TextBuffer::new_line(const CursorManager& cm) {
     was_modified = true;
 }
 
-void TextBuffer::delete_line(const CursorManager& cm) {
+void Buffer::delete_line(const CursorManager& cm) {
     const std::size_t line_idx = cm.get().row;
     delete_line(line_idx);
 }
 
-void TextBuffer::delete_line(const std::size_t line_idx) {
+void Buffer::delete_line(const std::size_t line_idx) {
     buffer.erase(buffer.begin() + line_idx);
     if (line_idx == 0 && line_count() == 1) {
         buffer.insert(buffer.begin() + line_idx, "");
@@ -201,7 +201,7 @@ void TextBuffer::delete_line(const std::size_t line_idx) {
     was_modified = true;
 }
 
-void TextBuffer::delete_range(const Cursor& start, const Cursor& end,
+void Buffer::delete_range(const Cursor& start, const Cursor& end,
                               Logger& logger) {
     Cursor actual_start = start;
     Cursor actual_end = end;

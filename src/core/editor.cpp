@@ -2,7 +2,7 @@
 #include "../commands/commands.h"
 #include "../keybindings/keybindings.h"
 #include "cursor.h"
-#include "textbuffer.h"
+#include "buffer.h"
 #include "tui.h"
 #include <fstream>
 #include <iostream>
@@ -113,7 +113,7 @@ void Editor::command_mode() {
     curr_mode = Mode::Normal;
 }
 
-TextBuffer& Editor::get_buffer() {
+Buffer& Editor::get_buffer() {
     return buffer;
 }
 

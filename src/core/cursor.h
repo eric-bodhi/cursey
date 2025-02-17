@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../defs.h"
-#include "textbuffer.h"
+#include "buffer.h"
 #include <cstddef>
 
 /*
@@ -10,17 +10,17 @@
 */
 
 // forward decl
-class TextBuffer;
+class Buffer;
 
 class CursorManager {
 private:
     Cursor m_cursor;
-    TextBuffer& m_buffer;
+    Buffer& m_buffer;
     size_t max_row;
     Logger logger = Logger("../logfile.txt");
 
 public:
-    CursorManager(TextBuffer& buffer, std::size_t max_r,
+    CursorManager(Buffer& buffer, std::size_t max_r,
                   const Cursor& arg_cursor = Cursor());
 
     const Cursor& get();

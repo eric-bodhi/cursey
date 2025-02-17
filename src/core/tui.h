@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../defs.h"
-#include "textbuffer.h"
+#include "buffer.h"
 #include <cmath>
 #include <notcurses/notcurses.h>
 #include <optional>
@@ -33,7 +33,7 @@ private:
     const std::string filename;
 
 public:
-    NotcursesTUI(const TextBuffer& buffer, std::string_view file);
+    NotcursesTUI(const Buffer& buffer, std::string_view file);
     ~NotcursesTUI();
 
     // both return true if need to destroy/recreate planes
@@ -41,7 +41,7 @@ public:
     bool resize_by_term();
     void resize(std::size_t line_count);
 
-    void render_file(const Cursor& cursor, const TextBuffer& buffer,
+    void render_file(const Cursor& cursor, const Buffer& buffer,
                      std::size_t view_offset,
                      const std::optional<Cursor>& visual_start,
                      const std::optional<Cursor>& visual_end);
