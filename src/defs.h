@@ -20,7 +20,7 @@ struct Cursor {
 };
 
 struct VisualRange {
-    const std::optional<Cursor>& visual_start, visual_end;
+    const std::optional<Cursor>&visual_start, visual_end;
 };
 
 enum class Direction {

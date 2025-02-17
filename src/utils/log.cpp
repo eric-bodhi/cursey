@@ -30,6 +30,7 @@ void Logger::log(const std::string& message) {
 std::string Logger::get_curr_time() {
     std::time_t curr_time = std::time(nullptr);
     char buf[20];
-    std::strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", std::localtime(&curr_time));
+    std::strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S",
+                  std::localtime(&curr_time));
     return buf;
 }

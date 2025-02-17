@@ -155,7 +155,7 @@ void TextBuffer::erase(const Cursor& cursor) {
     move_cursor(cursor);
     if (std::holds_alternative<GapBuffer>(buffer.at(cursor.row))) {
         GapBuffer& gb_line = std::get<GapBuffer>(buffer.at(cursor.row));
-        if (gb_line.size() == 0) {
+        if (gb_line.size() == 0 && cursor.row != 0) {
             delete_line(cursor.row);
             return;
         }
@@ -201,13 +201,15 @@ void TextBuffer::delete_line(const std::size_t line_idx) {
     was_modified = true;
 }
 
-void TextBuffer::delete_range(const Cursor& start, const Cursor& end, Logger& logger) {
+void TextBuffer::delete_range(const Cursor& start, const Cursor& end,
+                              Logger& logger) {
     Cursor actual_start = start;
     Cursor actual_end = end;
 
     // Ensure start is before end
     if (actual_start.row > actual_end.row ||
-        (actual_start.row == actual_end.row && actual_start.col > actual_end.col)) {
+        (actual_start.row == actual_end.row &&
+         actual_start.col > actual_end.col)) {
         std::swap(actual_start, actual_end);
     }
 
@@ -237,7 +239,9 @@ void TextBuffer::delete_range(const Cursor& start, const Cursor& end, Logger& lo
         // Capture the remaining part of the end line
         std::string end_line = get_line(actual_end.row);
         std::size_t end_col_plus1 = actual_end.col + 1;
-        std::string remaining = (end_col_plus1 <= end_line.size()) ? end_line.substr(end_col_plus1) : "";
+        std::string remaining = (end_col_plus1 <= end_line.size())
+                                    ? end_line.substr(end_col_plus1)
+                                    : "";
 
         // Delete lines from start.row +1 to end.row inclusive
         std::size_t lines_to_delete = actual_end.row - actual_start.row;

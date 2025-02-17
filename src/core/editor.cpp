@@ -65,23 +65,21 @@ void Editor::insert_mode(int input) {
             std::size_t prev_line_length{};
             if (cm.get().row > 0) {
                 prev_line_length = buffer.get_line_length(cm.get().row - 1);
-                logger.log("b4 " + std::to_string(prev_line_length));
                 (prev_line_length == 1) ? prev_line_length = 0
                                         : prev_line_length;
                 buffer.insert({cm.get().row - 1, prev_line_length},
                               buffer.get_line(cm.get().row));
+
+                buffer.delete_line(cm);
+                cm.move_abs({cm.get().row - 1,
+                             (prev_line_length == 1) ? 0 : prev_line_length});
             }
-            buffer.delete_line(cm);
-            logger.log(std::to_string(prev_line_length));
-            logger.log(
-                std::to_string((prev_line_length == 1) ? 0 : prev_line_length));
-            cm.move_abs({cm.get().row - 1,
-                         (prev_line_length == 1) ? 0 : prev_line_length});
         }
         break;
     case NCKEY_ENTER: // Enter key
         buffer.new_line(cm);
         cm.move_dir(Direction::Down);
+        cm.move_abs({cm.get().row, 0});
         buffer.move_cursor(cm);
         break;
     default:

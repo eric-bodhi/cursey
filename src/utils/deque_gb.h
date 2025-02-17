@@ -9,7 +9,8 @@ private:
     std::deque<char> right;
 
 public:
-    explicit GapBuffer(const std::string& string = "", const size_t& cursor = 0);
+    explicit GapBuffer(const std::string& string = "",
+                       const size_t& cursor = 0);
 
     void move_cursor(size_t index);
     void move_left();

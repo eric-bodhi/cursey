@@ -1,8 +1,8 @@
 #pragma once
 
+#include <ctime>
 #include <fstream>
 #include <string>
-#include <ctime>
 
 class Logger {
 public:

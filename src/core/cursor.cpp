@@ -3,7 +3,7 @@
 
 CursorManager::CursorManager(TextBuffer& buffer, std::size_t max_r,
                              const Cursor& arg_cursor)
-    : m_buffer(buffer), max_row(max_r), m_cursor(arg_cursor){};
+    : m_buffer(buffer), max_row(max_r), m_cursor(arg_cursor) {};
 
 void CursorManager::move_dir(Direction direction) {
     switch (direction) {
@@ -12,7 +12,7 @@ void CursorManager::move_dir(Direction direction) {
             if (m_buffer.get_line_length(m_cursor.row - 1) == 0) {
                 m_cursor.col = 0;
             } else if (m_buffer.get_line_length(m_cursor.row - 1) - 1 <
-                m_cursor.original_col) {
+                       m_cursor.original_col) {
                 m_cursor.col = m_buffer.get_line_length(m_cursor.row - 1) - 1;
             } else if (m_buffer.get_line_length(m_cursor.row - 1) >=
                        m_cursor.original_col) {
@@ -27,7 +27,7 @@ void CursorManager::move_dir(Direction direction) {
             if (m_buffer.get_line_length(m_cursor.row + 1) == 0) {
                 m_cursor.col = 0;
             } else if (m_buffer.get_line_length(m_cursor.row + 1) - 1 <=
-                m_cursor.original_col) {
+                       m_cursor.original_col) {
                 m_cursor.col = m_buffer.get_line_length(m_cursor.row + 1) - 1;
             } else if (m_buffer.get_line_length(m_cursor.row + 1) >=
                        m_cursor.original_col) {

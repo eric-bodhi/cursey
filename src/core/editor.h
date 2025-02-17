@@ -7,9 +7,9 @@
 #include "tui.h"
 #include "viewportmanager.h"
 #include <functional>
+#include <optional>
 #include <string>
 #include <unordered_map>
-#include <optional>
 
 enum class Mode {
     Normal,
