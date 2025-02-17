@@ -24,7 +24,7 @@ public:
     bool load_file(const std::string& filepath);
 
     [[maybe_unused]] void revert_buffer();
-    void revert_buffer(std::vector<std::string> new_buffer);
+    void revert_buffer(const std::vector<std::string>& new_buffer);
 
     std::size_t line_count() const;
 

@@ -14,8 +14,7 @@ std::unordered_map<std::string, std::function<void(Editor&)>> normal_keys = {
     {"l",
      [](Editor& editor) {
          auto& cm = editor.get_cm();
-         auto cursor = cm.get();
-         if (cursor.col < editor.get_buffer().get_line_length(cursor.row) - 1) {
+         if (const auto cursor = cm.get(); cursor.col < editor.get_buffer().get_line_length(cursor.row) - 1) {
              cm.move_dir(Direction::Right);
          }
      }},
@@ -24,7 +23,6 @@ std::unordered_map<std::string, std::function<void(Editor&)>> normal_keys = {
     {"a",
      [](Editor& editor) {
          auto& cm = editor.get_cm();
-         auto cm_cursor = cm.get();
          cm.move_dir(Direction::Right);
          editor.set_mode(Mode::Insert);
      }},
@@ -32,17 +30,17 @@ std::unordered_map<std::string, std::function<void(Editor&)>> normal_keys = {
 
     {"dd",
      [](Editor& editor) {
-         auto& buffer = editor.get_buffer();
+         const auto& buffer = editor.get_buffer();
          auto& cm = editor.get_cm();
          editor.get_buffer().delete_line(editor.get_cm());
-         if (cm.get().row == buffer.line_count()) {
+         if (cm.row() == buffer.line_count()) {
              cm.move_dir(Direction::Up);
          }
      }},
 
     {"G",
      [](Editor& editor) {
-         auto& tb = editor.get_buffer();
+         const auto& tb = editor.get_buffer();
          editor.get_cm().move_abs({tb.line_count() - 1, 0});
      }},
     {"gg", [](Editor& editor) { editor.get_cm().move_abs({0, 0}); }},
@@ -71,7 +69,7 @@ std::unordered_map<std::string, std::function<void(Editor&)>> visual_keys = {
      }},
     {"G",
      [](Editor& editor) {
-         auto& tb = editor.get_buffer();
+         const auto& tb = editor.get_buffer();
          editor.get_cm().move_abs({tb.line_count() - 1, 0});
          editor.set_visual_end(editor.get_cm().get());
      }},
@@ -83,9 +81,9 @@ std::unordered_map<std::string, std::function<void(Editor&)>> visual_keys = {
     {"v", [](Editor& editor) { editor.set_mode(Mode::Normal); }},
     {"d",
      [](Editor& editor) {
-         VisualRange vr = editor.get_visual_range();
-         Cursor start_cursor = vr.visual_start.value();
-         Cursor end_cursor = vr.visual_end.value();
+         auto [visual_start, visual_end] = editor.get_visual_range();
+         const Cursor start_cursor = visual_start.value();
+         const Cursor end_cursor = visual_end.value();
          editor.get_buffer().delete_range(start_cursor, end_cursor,
                                           editor.get_logger());
          editor.get_cm().move_abs(start_cursor);

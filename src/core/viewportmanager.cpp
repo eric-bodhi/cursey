@@ -3,13 +3,13 @@
 #include "tui.h"
 #include <cstddef>
 
-ViewportManager::ViewportManager(TermBoundaries boundaries)
-    : term(boundaries), view_offset(0),
-      max_visible_rows(boundaries.max_row - 2),
-      max_visible_cols(boundaries.max_col) {
+ViewportManager::ViewportManager(const TermBoundaries boundaries)
+    : view_offset(0), max_visible_rows(boundaries.max_row - 2),
+      max_visible_cols(boundaries.max_col),
+      term(boundaries) {
 }
 
-void ViewportManager::update_term_size(TermBoundaries boundaries) {
+void ViewportManager::update_term_size(const TermBoundaries boundaries) {
     term = boundaries;
     max_visible_rows = boundaries.max_row - 2;
     max_visible_cols = boundaries.max_col;

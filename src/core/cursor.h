@@ -16,18 +16,17 @@ class CursorManager {
 private:
     Cursor m_cursor;
     Buffer& m_buffer;
-    size_t max_row;
     Logger logger = Logger("../logfile.txt");
 
 public:
-    CursorManager(Buffer& buffer, std::size_t max_r,
-                  const Cursor& arg_cursor = Cursor());
+    explicit CursorManager(Buffer &buffer, const Cursor &arg_cursor = Cursor());
 
     const Cursor& get();
     const Cursor& get() const;
 
-    Cursor get_one_idx();
-    Cursor get_one_idx() const;
+    std::size_t row() const;
+    std::size_t col() const;
+    [[maybe_unused]] Cursor get_one_idx() const;
 
     void move_dir(Direction direction);
     void move_abs(const Cursor& pos);

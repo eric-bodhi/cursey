@@ -1,11 +1,10 @@
 #include "cursor.h"
 #include "../defs.h"
 
-CursorManager::CursorManager(Buffer& buffer, std::size_t max_r,
-                             const Cursor& arg_cursor)
-    : m_buffer(buffer), max_row(max_r), m_cursor(arg_cursor) {};
+CursorManager::CursorManager(Buffer &buffer, const Cursor &arg_cursor)
+    : m_cursor(arg_cursor), m_buffer(buffer) {}
 
-void CursorManager::move_dir(Direction direction) {
+void CursorManager::move_dir(const Direction direction) {
     switch (direction) {
     case Direction::Up:
         if (m_cursor.row > 0) {
@@ -69,12 +68,15 @@ const Cursor& CursorManager::get() const {
     return m_cursor;
 }
 
-Cursor CursorManager::get_one_idx() {
+[[maybe_unused]] Cursor CursorManager::get_one_idx() const {
     return Cursor(m_cursor.row + 1, m_cursor.col + 1,
                   m_cursor.original_col + 1);
 }
 
-Cursor CursorManager::get_one_idx() const {
-    return Cursor(m_cursor.row + 1, m_cursor.col + 1,
-                  m_cursor.original_col + 1);
+std::size_t CursorManager::row() const {
+    return m_cursor.row;
+}
+
+std::size_t CursorManager::col() const {
+    return m_cursor.col;
 }

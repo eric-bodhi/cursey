@@ -12,7 +12,7 @@ GapBuffer::GapBuffer(const std::string& string, const size_t& cursor) {
     move_cursor(cursor);
 }
 
-void GapBuffer::move_cursor(size_t index) {
+void GapBuffer::move_cursor(const size_t index) {
     // if cursor in same position
     if (index == left.size()) {
         return;

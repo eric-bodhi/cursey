@@ -8,7 +8,7 @@
 #include <notcurses/notcurses.h>
 #include <string>
 
-std::size_t NotcursesTUI::lengthofsize_t(std::size_t value) {
+std::size_t NotcursesTUI::lengthofsize_t(const std::size_t value) {
     if (value == 0)
         return 1;
     return static_cast<std::size_t>(std::log10(value)) + 1;
@@ -62,16 +62,16 @@ void NotcursesTUI::create_planes() {
     ncplane_set_base(cmd_plane, " ", 0, cmd_channel);
 }
 
-void NotcursesTUI::destroy_planes() {
+void NotcursesTUI::destroy_planes() const {
     ncplane_destroy(main_plane);
     ncplane_destroy(line_plane);
     ncplane_destroy(tool_plane);
     ncplane_destroy(cmd_plane);
 }
 
-NotcursesTUI::NotcursesTUI(const Buffer& buffer, std::string_view file)
+NotcursesTUI::NotcursesTUI(const Buffer& buffer, const std::string_view file)
     : filename(file) {
-    notcurses_options opts{};
+    constexpr notcurses_options opts{};
     nc = notcurses_init(&opts, stdout);
     if (!nc) {
         std::fprintf(stderr, "Error initializing Notcurses\n");
@@ -96,7 +96,7 @@ NotcursesTUI::~NotcursesTUI() {
     notcurses_stop(nc);
 }
 
-bool NotcursesTUI::resize_by_lineno(std::size_t line_count) {
+bool NotcursesTUI::resize_by_lineno(const std::size_t line_count) {
     const std::size_t new_number_length =
         line_count > 0 ? lengthofsize_t(line_count) : 1;
     if (new_number_length == line_number_length)
@@ -122,7 +122,7 @@ bool NotcursesTUI::resize_by_term() {
     return needs_resize;
 }
 
-void NotcursesTUI::resize(std::size_t line_count) {
+void NotcursesTUI::resize(const std::size_t line_count) {
     if (resize_by_term() || resize_by_lineno(line_count)) {
         destroy_planes();
         create_planes();
@@ -130,7 +130,7 @@ void NotcursesTUI::resize(std::size_t line_count) {
 }
 
 void NotcursesTUI::render_file(const Cursor& cursor, const Buffer& buffer,
-                               std::size_t view_offset,
+                               const std::size_t view_offset,
                                const std::optional<Cursor>& visual_start,
                                const std::optional<Cursor>& visual_end) {
     ncplane_erase(main_plane);
@@ -150,7 +150,7 @@ void NotcursesTUI::render_file(const Cursor& cursor, const Buffer& buffer,
 
         // Text content with syntax highlighting
         std::string line_text = buffer.get_line(line_index);
-        lex::highlight_line(line_text, [&](int col, TokenType type, char c) {
+        lex::highlight_line(line_text, [&](const int col, const TokenType type, const char c) {
             bool selected = false;
             if (visual_start && visual_end) {
                 Cursor actual_start = *visual_start;
@@ -192,7 +192,6 @@ void NotcursesTUI::render_file(const Cursor& cursor, const Buffer& buffer,
     }
 
     // Cursor handling
-    const int cursor_row = static_cast<int>(cursor.row - view_offset);
     const int cursor_col = static_cast<int>(cursor.col);
     ncplane_cursor_move_yx(main_plane, cursor.row, cursor_col);
     notcurses_cursor_enable(nc, cursor.row,
@@ -202,7 +201,7 @@ void NotcursesTUI::render_file(const Cursor& cursor, const Buffer& buffer,
 }
 
 void NotcursesTUI::render_tool_line(const Cursor& cursor,
-                                    const bool& was_modified) {
+                                    const bool& was_modified) const {
     ncplane_erase(tool_plane);
     const std::string pos_str =
         std::to_string(cursor.row + 1) + "," + std::to_string(cursor.col + 1);
@@ -216,13 +215,13 @@ void NotcursesTUI::render_tool_line(const Cursor& cursor,
     notcurses_render(nc);
 }
 
-void NotcursesTUI::render_command_line(const std::string& command) {
+void NotcursesTUI::render_command_line(const std::string& command) const {
     ncplane_erase(cmd_plane);
     ncplane_printf_yx(cmd_plane, 0, 0, ":%s", command.c_str());
     notcurses_render(nc);
 }
 
-void NotcursesTUI::render_message(const std::string& message) {
+void NotcursesTUI::render_message(const std::string& message) const {
     ncplane_erase(cmd_plane);
     ncplane_printf_yx(cmd_plane, 0, 0, "%s", message.c_str());
     notcurses_render(nc);
@@ -232,12 +231,12 @@ TermBoundaries NotcursesTUI::get_terminal_size() const {
     return {max_row, max_col};
 }
 
-int NotcursesTUI::get_char() {
+int NotcursesTUI::get_char() const {
     ncinput ni;
     return static_cast<int>(notcurses_get(nc, nullptr, &ni));
 }
 
-void NotcursesTUI::set_cursor_mode(CursorMode mode) {
+void NotcursesTUI::set_cursor_mode(const CursorMode mode) {
     switch (mode) {
     case CursorMode::Block:
         std::printf("\033[2 q");

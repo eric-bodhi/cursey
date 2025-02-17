@@ -28,7 +28,7 @@ void Logger::log(const std::string& message) {
 
 // Get the current time as a string
 std::string Logger::get_curr_time() {
-    std::time_t curr_time = std::time(nullptr);
+    const std::time_t curr_time = std::time(nullptr);
     char buf[20];
     std::strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S",
                   std::localtime(&curr_time));

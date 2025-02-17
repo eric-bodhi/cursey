@@ -42,7 +42,7 @@ bool Buffer::load_file(const std::string& filepath) {
     return true;
 }
 
-void Buffer::revert_buffer(std::vector<std::string> new_buffer) {
+void Buffer::revert_buffer(const std::vector<std::string>& new_buffer) {
     buffer.clear();
     for (const auto& line : new_buffer) {
         buffer.emplace_back(line);
@@ -103,7 +103,7 @@ void Buffer::switch_line(std::size_t new_line_idx) {
 }
 
 void Buffer::move_cursor(const CursorManager& new_cm) {
-    auto new_cursor = new_cm.get();
+    const auto new_cursor = new_cm.get();
     if (gb_idx != new_cursor.row) {
         switch_line(new_cursor.row);
     }
@@ -215,12 +215,11 @@ void Buffer::delete_range(const Cursor& start, const Cursor& end,
 
     if (actual_start.row == actual_end.row) {
         // Same line: delete the substring from start.col to end.col inclusive
-        std::size_t line_idx = actual_start.row;
+        const std::size_t line_idx = actual_start.row;
         std::string line = get_line(line_idx);
-        std::size_t start_col = actual_start.col;
-        std::size_t end_col = std::min(actual_end.col, line.size() - 1);
+        const std::size_t start_col = actual_start.col;
 
-        if (start_col <= end_col) {
+        if (const std::size_t end_col = std::min(actual_end.col, line.size() - 1); start_col <= end_col) {
             line.erase(start_col, end_col - start_col + 1);
             buffer[line_idx] = line;
             was_modified = true;
@@ -228,23 +227,22 @@ void Buffer::delete_range(const Cursor& start, const Cursor& end,
     } else {
         // Multi-line deletion
         std::string start_line = get_line(actual_start.row);
-        std::size_t start_col = actual_start.col;
 
         // Truncate the start line to the start column
-        if (start_col < start_line.size()) {
+        if (const std::size_t start_col = actual_start.col; start_col < start_line.size()) {
             start_line.erase(start_col);
             buffer[actual_start.row] = start_line;
         }
 
         // Capture the remaining part of the end line
-        std::string end_line = get_line(actual_end.row);
-        std::size_t end_col_plus1 = actual_end.col + 1;
-        std::string remaining = (end_col_plus1 <= end_line.size())
+        const std::string end_line = get_line(actual_end.row);
+        const std::size_t end_col_plus1 = actual_end.col + 1;
+        const std::string remaining = (end_col_plus1 <= end_line.size())
                                     ? end_line.substr(end_col_plus1)
                                     : "";
 
         // Delete lines from start.row +1 to end.row inclusive
-        std::size_t lines_to_delete = actual_end.row - actual_start.row;
+        const std::size_t lines_to_delete = actual_end.row - actual_start.row;
         for (std::size_t i = 0; i < lines_to_delete; ++i) {
             delete_line(actual_start.row + 1);
         }

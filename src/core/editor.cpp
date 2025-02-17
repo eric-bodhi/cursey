@@ -10,13 +10,13 @@
 #include <string>
 
 // A helper to convert an integer key to a string.
-std::string int_to_str(int value) {
+std::string int_to_str(const int value) {
     return {static_cast<char>(value)};
 }
 
 Editor::Editor(const std::string& filepath)
     : tui(buffer, filepath), buffer(filepath), viewport({0, 0}),
-      cm(buffer, tui.get_terminal_size().max_row), m_filepath(filepath),
+      cm(buffer), m_filepath(filepath),
       should_exit(false) {
 }
 
@@ -34,7 +34,7 @@ void Editor::write_file() {
     buffer.set_modified(false);
 }
 
-void Editor::set_mode(Mode mode) {
+void Editor::set_mode(const Mode mode) {
     if (curr_mode == Mode::Visual && mode != Mode::Visual) {
         m_visual_start = std::nullopt;
         m_visual_end = std::nullopt;
@@ -49,7 +49,7 @@ void Editor::set_visual_end(const Cursor& cursor) {
     m_visual_end = cursor;
 }
 
-void Editor::insert_mode(int input) {
+void Editor::insert_mode(const int input) {
     // For our Notcurses version, we assume input is an ASCII code.
     if (input == NCKEY_ESC) { // ESC key
         curr_mode = Mode::Normal;
@@ -58,20 +58,20 @@ void Editor::insert_mode(int input) {
 
     switch (input) {
     case NCKEY_BACKSPACE: // Backspace (typically 127)
-        if (cm.get().col > 0) {
+        if (cm.col() > 0) {
             buffer.erase(cm);
             cm.move_dir(Direction::Left);
         } else {
             std::size_t prev_line_length{};
-            if (cm.get().row > 0) {
-                prev_line_length = buffer.get_line_length(cm.get().row - 1);
+            if (cm.row() > 0) {
+                prev_line_length = buffer.get_line_length(cm.row() - 1);
                 (prev_line_length == 1) ? prev_line_length = 0
                                         : prev_line_length;
-                buffer.insert({cm.get().row - 1, prev_line_length},
-                              buffer.get_line(cm.get().row));
+                buffer.insert({cm.row() - 1, prev_line_length},
+                              buffer.get_line(cm.row()));
 
                 buffer.delete_line(cm);
-                cm.move_abs({cm.get().row - 1,
+                cm.move_abs({cm.row() - 1,
                              (prev_line_length == 1) ? 0 : prev_line_length});
             }
         }
@@ -79,7 +79,7 @@ void Editor::insert_mode(int input) {
     case NCKEY_ENTER: // Enter key
         buffer.new_line(cm);
         cm.move_dir(Direction::Down);
-        cm.move_abs({cm.get().row, 0});
+        cm.move_abs({cm.row(), 0});
         buffer.move_cursor(cm);
         break;
     default:
@@ -125,22 +125,22 @@ Logger& Editor::get_logger() {
     return logger;
 }
 
-const std::string& Editor::get_filepath() {
+[[maybe_unused]] const std::string& Editor::get_filepath() {
     return m_filepath;
 }
 
-VisualRange Editor::get_visual_range() {
+VisualRange Editor::get_visual_range() const {
     return {m_visual_start, m_visual_end};
 }
 
-void Editor::set_should_exit(bool value) {
+void Editor::set_should_exit(const bool value) {
     should_exit = value;
 }
 
 void Editor::update_view() {
-    auto model_cursor = cm.get();
+    const auto model_cursor = cm.get();
     viewport.adjust_viewport(model_cursor);
-    auto screen_cursor = viewport.model_to_screen(model_cursor);
+    const auto screen_cursor = viewport.model_to_screen(model_cursor);
     tui.render_file(screen_cursor, buffer, viewport.get_view_offset(),
                     m_visual_start, m_visual_end);
 }
@@ -172,9 +172,8 @@ void Editor::run() {
             }
         }
 
-        TermBoundaries curr_term_size = tui.get_terminal_size();
-        if (curr_term_size.max_row != viewport.get_max_row() + 2 ||
-            curr_term_size.max_col != viewport.get_max_col()) {
+        if (TermBoundaries curr_term_size = tui.get_terminal_size(); curr_term_size.max_row != viewport.get_max_row() + 2 ||
+                                                                     curr_term_size.max_col != viewport.get_max_col()) {
             viewport.update_term_size(curr_term_size);
         }
 

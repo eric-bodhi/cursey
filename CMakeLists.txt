@@ -9,7 +9,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 add_executable(main
   main.cpp
   src/core/tui.cpp
-        src/core/buffer.cpp
+  src/core/buffer.cpp
   src/core/editor.cpp
   src/utils/log.cpp
   src/utils/deque_gb.cpp

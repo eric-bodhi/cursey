@@ -36,7 +36,7 @@ std::vector<std::string> tokenize(const std::string& line) {
     bool in_preprocessor = false;
 
     for (size_t i = 0; i < line.size(); ++i) {
-        char c = line[i];
+        const char c = line[i];
 
         if (in_comment) {
             current += c;
@@ -123,8 +123,7 @@ std::vector<std::string> tokenize(const std::string& line) {
             if (!current.empty() && ispunct(current[0])) {
                 // Check if combined with previous punctuation forms a known
                 // operator
-                std::string combined = current + c;
-                if (is_operator(
+                if (std::string combined = current + c; is_operator(
                         combined)) { // You'll need to implement is_operator
                     current += c;
                     continue;
@@ -165,7 +164,7 @@ bool is_operator(const std::string& str) {
         // Triple-character (C++ specific)
         "...", "<<=", ">>="};
 
-    return operators.count(str) > 0;
+    return operators.contains(str);
 }
 TokenType classify_token(const std::string& token) {
     if (token.empty())
@@ -193,11 +192,11 @@ TokenType classify_token(const std::string& token) {
     }
 
     // 5. Keywords
-    if (keywords.count(token))
+    if (keywords.contains(token))
         return TokenType::Keyword;
 
     // 6. Type names
-    if (types.count(token))
+    if (types.contains(token))
         return TokenType::Type;
 
     // 7. Operators and punctuation
@@ -221,7 +220,7 @@ TokenType classify_token(const std::string& token) {
 
 void highlight_line(const std::string& line,
                     const std::function<void(int, TokenType, char)>& callback) {
-    auto tokens = tokenize(line);
+    const auto tokens = tokenize(line);
     int x = 0;
 
     for (size_t i = 0; i < tokens.size(); ++i) {

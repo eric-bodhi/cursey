@@ -54,6 +54,7 @@ public:
     Buffer& get_buffer();
     CursorManager& get_cm();
     Logger& get_logger();
-    const std::string& get_filepath();
-    VisualRange get_visual_range();
+
+    [[maybe_unused]] const std::string& get_filepath();
+    VisualRange get_visual_range() const;
 };
