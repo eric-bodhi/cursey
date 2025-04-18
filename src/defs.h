@@ -12,6 +12,14 @@ struct Cursor {
         return row == other.row && col == other.col;
     }
 
+    bool operator<(Cursor& other) const {
+        return (row < other.row && col < other.col);
+    }
+
+    bool operator>(Cursor& other) const {
+        return (row > other.row && col > other.col);
+    }
+
     void swap(Cursor&& other) noexcept {
         std::swap(row, other.row);
         std::swap(col, other.col);

@@ -1,8 +1,8 @@
 #include "editor.h"
 #include "../commands/commands.h"
 #include "../keybindings/keybindings.h"
-#include "cursor.h"
 #include "buffer.h"
+#include "cursor.h"
 #include "tui.h"
 #include <fstream>
 #include <iostream>
@@ -15,9 +15,8 @@ std::string int_to_str(const int value) {
 }
 
 Editor::Editor(const std::string& filepath)
-    : tui(buffer, filepath), cm(buffer), viewport({0, 0}),
-      buffer(filepath), m_filepath(filepath),
-      should_exit(false) {
+    : tui(buffer, filepath), cm(buffer), viewport({0, 0}), buffer(filepath),
+      m_filepath(filepath), should_exit(false) {
 }
 
 void Editor::write_file() {
@@ -46,7 +45,11 @@ void Editor::set_mode(const Mode mode) {
 }
 
 void Editor::set_visual_end(const Cursor& cursor) {
-    m_visual_end = cursor;
+    if (cursor > m_visual_end.value()) {
+        m_visual_end = cursor;
+    } else {
+        m_visual_start = cursor;
+    }
 }
 
 void Editor::insert_mode(const int input) {
@@ -62,11 +65,10 @@ void Editor::insert_mode(const int input) {
             buffer.erase(cm);
             cm.move_dir(Direction::Left);
         } else {
-            std::size_t prev_line_length{};
             if (cm.row() > 0) {
+                std::size_t prev_line_length{};
                 prev_line_length = buffer.get_line_length(cm.row() - 1);
-                prev_line_length == 1 ? prev_line_length = 0
-                                        : prev_line_length;
+                prev_line_length == 1 ? prev_line_length = 0 : prev_line_length;
                 buffer.insert({cm.row() - 1, prev_line_length},
                               buffer.get_line(cm.row()));
 
@@ -173,8 +175,9 @@ void Editor::run() {
             }
         }
 
-        if (const TermBoundaries curr_term_size = tui.get_terminal_size(); curr_term_size.max_row != viewport.get_max_row() + 2 ||
-                                                                     curr_term_size.max_col != viewport.get_max_col()) {
+        if (const TermBoundaries curr_term_size = tui.get_terminal_size();
+            curr_term_size.max_row != viewport.get_max_row() + 2 ||
+            curr_term_size.max_col != viewport.get_max_col()) {
             viewport.update_term_size(curr_term_size);
         }
 
