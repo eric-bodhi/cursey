@@ -1,253 +1,360 @@
 #include "buffer.h"
-#include "../utils/deque_gb.h"
-#include <cmath>
+
+#include <algorithm>
+#include <cerrno>
+#include <cstring>
 #include <fstream>
-#include <iostream>
-#include <string>
-#include <variant>
+#include <sstream>
 
-Buffer::Buffer(const std::string& filepath) {
-    load_file(filepath);
-    if (buffer.empty()) {
-        buffer.emplace_back("");
-    }
-    buffer.at(0) = GapBuffer(get_line(0));
+namespace {
 
-    // populate unwritten buffer
-    for (const auto& line : buffer) {
-        if (std::holds_alternative<std::string>(line)) {
-            original_buffer.push_back(std::get<std::string>(line));
-        } else {
-            original_buffer.push_back(std::get<GapBuffer>(line).to_string());
-        }
+// Position just after `text` if it were inserted at `pos`.
+Position end_of_inserted(const Position pos, const std::string_view text) {
+    const std::size_t newlines = std::ranges::count(text, '\n');
+    if (newlines == 0) {
+        return {pos.row, pos.col + text.size()};
     }
+    return {pos.row + newlines, text.size() - text.rfind('\n') - 1};
 }
 
-bool Buffer::load_file(const std::string& filepath) {
-    std::ifstream file(filepath);
+} // namespace
 
+Buffer::Buffer() : m_lines(1) {
+}
+
+void Buffer::set_text(const std::string_view text) {
+    m_lines.clear();
+    std::size_t start = 0;
+    while (true) {
+        const std::size_t nl = text.find('\n', start);
+        if (nl == std::string_view::npos) {
+            m_lines.emplace_back(text.substr(start));
+            break;
+        }
+        m_lines.emplace_back(text.substr(start, nl - start));
+        start = nl + 1;
+    }
+    m_undo_stack.clear();
+    m_redo_stack.clear();
+    m_open_group.reset();
+    m_group_depth = 0;
+    m_saved_state = 0;
+    ++m_revision;
+}
+
+std::string Buffer::text() const {
+    std::string out;
+    for (std::size_t i = 0; i < m_lines.size(); ++i) {
+        if (i > 0) {
+            out += '\n';
+        }
+        out += m_lines[i];
+    }
+    return out;
+}
+
+bool Buffer::load(const std::string& path, std::string& error) {
+    std::ifstream file(path, std::ios::binary);
     if (!file.is_open()) {
-        std::cerr << "Error: unable to open file " << filepath << "\n";
+        error = "\"" + path + "\" " + std::strerror(errno);
         return false;
     }
+    std::stringstream ss;
+    ss << file.rdbuf();
+    std::string content = ss.str();
 
-    buffer.clear();
-
-    std::string line;
-    while (std::getline(file, line)) {
-        buffer.emplace_back(line);
+    // A trailing newline terminates the last line; it does not start a new
+    // (empty) one.
+    if (!content.empty() && content.back() == '\n') {
+        content.pop_back();
     }
-
-    file.close();
+    m_crlf = content.find("\r\n") != std::string::npos;
+    if (m_crlf) {
+        std::erase(content, '\r');
+    }
+    set_text(content);
     return true;
 }
 
-void Buffer::revert_buffer(const std::vector<std::string>& new_buffer) {
-    buffer.clear();
-    for (const auto& line : new_buffer) {
-        buffer.emplace_back(line);
+bool Buffer::save(const std::string& path, std::string& error) {
+    std::ofstream file(path, std::ios::binary | std::ios::trunc);
+    if (!file.is_open()) {
+        error = "\"" + path +
+                "\" E212: Can't open file for writing: " + std::strerror(errno);
+        return false;
     }
-    buffer.at(0) = GapBuffer(get_line(0));
-}
-
-[[maybe_unused]] void Buffer::revert_buffer() {
-    revert_buffer(original_buffer);
+    const char* eol = m_crlf ? "\r\n" : "\n";
+    // An empty buffer is written as an empty file.
+    if (!(m_lines.size() == 1 && m_lines[0].empty())) {
+        for (const auto& line : m_lines) {
+            file << line << eol;
+        }
+    }
+    file.close();
+    if (!file) {
+        error = "\"" + path + "\" E514: Write error";
+        return false;
+    }
+    mark_saved();
+    return true;
 }
 
 std::size_t Buffer::line_count() const {
-    return buffer.size();
+    return m_lines.size();
 }
 
-std::string Buffer::get_line(std::size_t index) const {
-    auto& line = buffer.at(index);
-    if (std::holds_alternative<GapBuffer>(line)) {
-        return std::get<GapBuffer>(line).to_string();
+const std::string& Buffer::line(const std::size_t row) const {
+    return m_lines.at(row);
+}
+
+std::size_t Buffer::line_length(const std::size_t row) const {
+    return m_lines.at(row).size();
+}
+
+std::size_t Buffer::last_row() const {
+    return m_lines.size() - 1;
+}
+
+Position Buffer::end_position() const {
+    return {last_row(), m_lines.back().size()};
+}
+
+std::size_t Buffer::first_non_blank(const std::size_t row) const {
+    const auto& l = m_lines.at(row);
+    const std::size_t i = l.find_first_not_of(" \t");
+    return i == std::string::npos ? l.size() : i;
+}
+
+Position Buffer::clamp(Position pos) const {
+    if (pos.row >= m_lines.size()) {
+        return end_position();
+    }
+    pos.col = std::min(pos.col, m_lines[pos.row].size());
+    return pos;
+}
+
+std::string Buffer::get_text(Position start, Position end) const {
+    start = clamp(start);
+    end = clamp(end);
+    if (end <= start) {
+        return {};
+    }
+    if (start.row == end.row) {
+        return m_lines[start.row].substr(start.col, end.col - start.col);
+    }
+    std::string out = m_lines[start.row].substr(start.col);
+    for (std::size_t r = start.row + 1; r < end.row; ++r) {
+        out += '\n';
+        out += m_lines[r];
+    }
+    out += '\n';
+    out += m_lines[end.row].substr(0, end.col);
+    return out;
+}
+
+Position Buffer::raw_insert(Position pos, const std::string_view text) {
+    pos = clamp(pos);
+    ++m_revision;
+    std::string& line = m_lines[pos.row];
+    const std::size_t nl = text.find('\n');
+    if (nl == std::string_view::npos) {
+        line.insert(pos.col, text);
+        return {pos.row, pos.col + text.size()};
     }
 
-    return std::get<std::string>(line);
+    // Split the line: [head][first piece] ... [last piece][tail]
+    std::string tail = line.substr(pos.col);
+    line.erase(pos.col);
+    line.append(text.substr(0, nl));
+
+    std::vector<std::string> new_lines;
+    std::size_t start = nl + 1;
+    while (true) {
+        const std::size_t next_nl = text.find('\n', start);
+        if (next_nl == std::string_view::npos) {
+            new_lines.emplace_back(text.substr(start));
+            break;
+        }
+        new_lines.emplace_back(text.substr(start, next_nl - start));
+        start = next_nl + 1;
+    }
+    const Position end{pos.row + new_lines.size(), new_lines.back().size()};
+    new_lines.back() += tail;
+    m_lines.insert(m_lines.begin() + static_cast<std::ptrdiff_t>(pos.row + 1),
+                   new_lines.begin(), new_lines.end());
+    return end;
 }
 
-std::size_t Buffer::get_line_length(std::size_t index) const {
-    return get_line(index).length();
+std::string Buffer::raw_erase(Position start, Position end) {
+    start = clamp(start);
+    end = clamp(end);
+    if (end <= start) {
+        return {};
+    }
+    ++m_revision;
+    std::string removed = get_text(start, end);
+    if (start.row == end.row) {
+        m_lines[start.row].erase(start.col, end.col - start.col);
+        return removed;
+    }
+    m_lines[start.row].erase(start.col);
+    m_lines[start.row] += m_lines[end.row].substr(end.col);
+    m_lines.erase(m_lines.begin() + static_cast<std::ptrdiff_t>(start.row + 1),
+                  m_lines.begin() + static_cast<std::ptrdiff_t>(end.row + 1));
+    return removed;
+}
+
+Position Buffer::insert(Position pos, const std::string_view text) {
+    pos = clamp(pos);
+    if (text.empty()) {
+        return pos;
+    }
+    record({Edit::Kind::Insert, pos, std::string(text)});
+    return raw_insert(pos, text);
+}
+
+std::string Buffer::erase(Position start, Position end) {
+    start = clamp(start);
+    std::string removed = raw_erase(start, end);
+    if (!removed.empty()) {
+        record({Edit::Kind::Erase, start, removed});
+    }
+    return removed;
+}
+
+void Buffer::replace(const Position start, const Position end,
+                     const std::string_view text) {
+    erase(start, end);
+    insert(start, text);
+}
+
+void Buffer::replace_line(const std::size_t row, const std::string_view text) {
+    if (m_lines.at(row) != text) {
+        replace({row, 0}, {row, m_lines[row].size()}, text);
+    }
+}
+
+std::string Buffer::delete_lines(std::size_t first, std::size_t last) {
+    last = std::min(last, last_row());
+    if (first > last) {
+        return {};
+    }
+    std::string removed = get_text({first, 0}, {last, m_lines[last].size()});
+    if (last < last_row()) {
+        // Remove the lines together with their trailing line breaks.
+        erase({first, 0}, {last + 1, 0});
+    } else if (first > 0) {
+        // Deleting through the last line: eat the line break before `first`.
+        erase({first - 1, m_lines[first - 1].size()},
+              {last, m_lines[last].size()});
+    } else {
+        // Deleting everything: leave a single empty line.
+        erase({0, 0}, end_position());
+    }
+    return removed;
+}
+
+void Buffer::insert_lines(const std::size_t row, const std::string_view text) {
+    if (row >= m_lines.size()) {
+        insert(end_position(), "\n" + std::string(text));
+    } else {
+        insert({row, 0}, std::string(text) + "\n");
+    }
+}
+
+// ---- Undo -------------------------------------------------------------------
+
+void Buffer::record(Edit edit) {
+    m_redo_stack.clear();
+    if (m_open_group) {
+        m_open_group->edits.push_back(std::move(edit));
+        return;
+    }
+    // An edit outside of any group becomes its own undo step.
+    UndoGroup group;
+    group.cursor_before = edit.pos;
+    group.id = m_next_group_id++;
+    group.edits.push_back(std::move(edit));
+    m_undo_stack.push_back(std::move(group));
+}
+
+void Buffer::begin_undo_group(const Position cursor) {
+    if (m_group_depth++ == 0) {
+        m_open_group = UndoGroup{};
+        m_open_group->cursor_before = cursor;
+    }
+}
+
+void Buffer::end_undo_group() {
+    if (m_group_depth == 0) {
+        return;
+    }
+    if (--m_group_depth == 0) {
+        if (m_open_group && !m_open_group->edits.empty()) {
+            m_open_group->id = m_next_group_id++;
+            m_undo_stack.push_back(std::move(*m_open_group));
+        }
+        m_open_group.reset();
+    }
+}
+
+std::optional<Position> Buffer::undo() {
+    if (m_undo_stack.empty()) {
+        return std::nullopt;
+    }
+    UndoGroup group = std::move(m_undo_stack.back());
+    m_undo_stack.pop_back();
+    for (auto it = group.edits.rbegin(); it != group.edits.rend(); ++it) {
+        if (it->kind == Edit::Kind::Insert) {
+            raw_erase(it->pos, end_of_inserted(it->pos, it->text));
+        } else {
+            raw_insert(it->pos, it->text);
+        }
+    }
+    const Position cursor = group.cursor_before;
+    m_redo_stack.push_back(std::move(group));
+    return clamp(cursor);
+}
+
+std::optional<Position> Buffer::redo() {
+    if (m_redo_stack.empty()) {
+        return std::nullopt;
+    }
+    UndoGroup group = std::move(m_redo_stack.back());
+    m_redo_stack.pop_back();
+    for (const auto& edit : group.edits) {
+        if (edit.kind == Edit::Kind::Insert) {
+            raw_insert(edit.pos, edit.text);
+        } else {
+            raw_erase(edit.pos, end_of_inserted(edit.pos, edit.text));
+        }
+    }
+    const Position cursor = group.edits.front().pos;
+    m_undo_stack.push_back(std::move(group));
+    return clamp(cursor);
+}
+
+bool Buffer::can_undo() const {
+    return !m_undo_stack.empty();
+}
+
+bool Buffer::can_redo() const {
+    return !m_redo_stack.empty();
+}
+
+std::uint64_t Buffer::state_id() const {
+    return m_undo_stack.empty() ? 0 : m_undo_stack.back().id;
 }
 
 bool Buffer::is_modified() const {
-    return was_modified;
+    const bool pending = m_open_group && !m_open_group->edits.empty();
+    return pending || state_id() != m_saved_state;
 }
 
-void Buffer::set_modified(const bool& value) {
-    was_modified = value;
+void Buffer::mark_saved() {
+    m_saved_state = state_id();
 }
 
-// turns gapbuffer back to string and new line to gapbuffer (to be edited)
-// where cm is the current cursor position
-void Buffer::switch_line(const std::size_t new_line_idx) {
-    if (gb_idx != new_line_idx) {
-        // Convert current line to string
-        if (std::holds_alternative<GapBuffer>(buffer.at(gb_idx))) {
-            auto& gb_line = std::get<GapBuffer>(buffer.at(gb_idx));
-            buffer.at(gb_idx) = gb_line.to_string();
-        }
-
-        // Update current line index
-        gb_idx = new_line_idx;
-
-        // Convert new line to GapBuffer if it's a string
-        if (std::holds_alternative<std::string>(buffer.at(new_line_idx))) {
-            const auto line_str =
-                std::get<std::string>(buffer.at(new_line_idx));
-            buffer.at(new_line_idx) = GapBuffer(line_str);
-            gb_idx = new_line_idx;
-        }
-    }
-}
-
-void Buffer::move_cursor(const CursorManager& new_cm) {
-    const auto new_cursor = new_cm.get();
-    if (gb_idx != new_cursor.row) {
-        switch_line(new_cursor.row);
-    }
-
-    if (std::holds_alternative<GapBuffer>(buffer.at(gb_idx))) {
-        std::get<GapBuffer>(buffer.at(gb_idx)).move_cursor(new_cursor.col);
-    }
-}
-
-void Buffer::move_cursor(const Cursor& cursor) {
-    if (gb_idx != cursor.row) {
-        switch_line(cursor.row);
-    }
-
-    if (std::holds_alternative<GapBuffer>(buffer.at(gb_idx))) {
-        std::get<GapBuffer>(buffer.at(gb_idx)).move_cursor(cursor.col);
-    }
-}
-
-void Buffer::insert(const Cursor& cursor, const char c) {
-    move_cursor(cursor);
-    if (std::holds_alternative<GapBuffer>(buffer.at(cursor.row))) {
-        auto& gb_line = std::get<GapBuffer>(buffer.at(cursor.row));
-        gb_line.insert(c);
-    }
-    was_modified = true;
-}
-
-void Buffer::insert(const CursorManager& cm, const char c) {
-    insert(cm.get(), c);
-}
-
-void Buffer::insert(const Cursor& cursor, std::string string) {
-    move_cursor(cursor);
-    if (std::holds_alternative<GapBuffer>(buffer.at(cursor.row))) {
-        auto& gb_line = std::get<GapBuffer>(buffer.at(cursor.row));
-        auto it = string.begin();
-        for (std::size_t _ = 0; _ < string.size(); ++_) {
-            gb_line.insert(*it++);
-        }
-    }
-}
-
-void Buffer::erase(const CursorManager& cm) {
-    erase(cm.get());
-}
-
-void Buffer::erase(const Cursor& cursor) {
-    move_cursor(cursor);
-    if (std::holds_alternative<GapBuffer>(buffer.at(cursor.row))) {
-        auto& gb_line = std::get<GapBuffer>(buffer.at(cursor.row));
-        if (gb_line.size() == 0 && cursor.row != 0) {
-            delete_line(cursor.row);
-            return;
-        }
-        gb_line.del();
-    }
-    was_modified = true;
-}
-
-void Buffer::new_line(const CursorManager& cm) {
-    const std::size_t line_idx = cm.get().row;
-    auto line = get_line(line_idx);
-    const auto new_line =
-        std::string(line.begin() + static_cast<int>(cm.col()), line.end());
-    if (new_line.empty()) {
-        buffer.insert(buffer.begin() + static_cast<int>(line_idx + 1), " ");
-    } else {
-        buffer.insert(buffer.begin() + static_cast<int>(line_idx + 1), new_line);
-    }
-
-    // set line before accordingly
-    if (new_line.size() == line.size()) {
-        buffer.at(line_idx) = " ";
-    } else {
-        buffer.at(line_idx) =
-            std::string(line.begin(), line.begin() + static_cast<int>(cm.col()));
-    }
-    was_modified = true;
-}
-
-void Buffer::delete_line(const CursorManager& cm) {
-    const std::size_t line_idx = cm.get().row;
-    delete_line(line_idx);
-}
-
-void Buffer::delete_line(const std::size_t line_idx) {
-    buffer.erase(buffer.begin() + static_cast<int>(line_idx));
-    if (line_idx == 0 && line_count() == 1) {
-        buffer.insert(buffer.begin() + static_cast<int>(line_idx), "");
-    } else if (line_count() - 1 == line_idx && line_idx != 0) {
-
-        switch_line(line_idx - 1);
-    }
-    was_modified = true;
-}
-
-void Buffer::delete_range(const Cursor &start, const Cursor &end) {
-    Cursor actual_start = start;
-    Cursor actual_end = end;
-
-    // Ensure start is before end
-    if (actual_start.row > actual_end.row ||
-        (actual_start.row == actual_end.row &&
-         actual_start.col > actual_end.col)) {
-        std::swap(actual_start, actual_end);
-    }
-
-    if (actual_start.row == actual_end.row) {
-        // Same line: delete the substring from start.col to end.col inclusive
-        const std::size_t line_idx = actual_start.row;
-        std::string line = get_line(line_idx);
-        const std::size_t start_col = actual_start.col;
-
-        if (const std::size_t end_col = std::min(actual_end.col, line.size() - 1); start_col <= end_col) {
-            line.erase(start_col, end_col - start_col + 1);
-            buffer[line_idx] = line;
-            was_modified = true;
-        }
-    } else {
-        // Multi-line deletion
-        std::string start_line = get_line(actual_start.row);
-
-        // Truncate the start line to the start column
-        if (const std::size_t start_col = actual_start.col; start_col < start_line.size()) {
-            start_line.erase(start_col);
-            buffer[actual_start.row] = start_line;
-        }
-
-        // Capture the remaining part of the end line
-        const std::string end_line = get_line(actual_end.row);
-        const std::size_t end_col_plus1 = actual_end.col + 1;
-        const std::string remaining = end_col_plus1 <= end_line.size()
-                                    ? end_line.substr(end_col_plus1)
-                                    : "";
-
-        // Delete lines from start.row +1 to end.row inclusive
-        const std::size_t lines_to_delete = actual_end.row - actual_start.row;
-        for (std::size_t i = 0; i < lines_to_delete; ++i) {
-            delete_line(actual_start.row + 1);
-        }
-
-        // Append the remaining content to the start line
-        buffer[actual_start.row] = get_line(actual_start.row) + remaining;
-        was_modified = true;
-    }
+std::uint64_t Buffer::revision() const {
+    return m_revision;
 }

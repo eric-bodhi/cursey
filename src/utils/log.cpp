@@ -1,32 +1,25 @@
 #include "log.h"
 
-#include <iostream>
+#include <cstdlib>
+#include <ctime>
 
-// Constructor: Open the log file in append mode
-Logger::Logger(const std::string& filename) {
-    logFile.open(filename, std::ios::out | std::ios::trunc);
-    if (!logFile.is_open()) {
-        std::cerr << "Error: Could not open log file: logfile.txt" << std::endl;
+Logger& Logger::get() {
+    static Logger instance;
+    return instance;
+}
+
+Logger::Logger() {
+    if (const char* path = std::getenv("CURSEY_LOG"); path && *path) {
+        log_file.open(path, std::ios::out | std::ios::app);
     }
 }
 
-// Destructor: Close the log file
-Logger::~Logger() {
-    if (logFile.is_open()) {
-        logFile.close();
-    }
-}
-
-// Write a message to the log file
 void Logger::log(const std::string& message) {
-    if (logFile.is_open()) {
-        logFile << "[" << get_curr_time() << "] " << message << std::endl;
-    } else {
-        std::cerr << "Log file is not open!" << std::endl;
+    if (log_file.is_open()) {
+        log_file << "[" << get_curr_time() << "] " << message << std::endl;
     }
 }
 
-// Get the current time as a string
 std::string Logger::get_curr_time() {
     const std::time_t curr_time = std::time(nullptr);
     char buf[20];
