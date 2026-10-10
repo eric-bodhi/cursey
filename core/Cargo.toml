@@ -1,0 +1,12 @@
+[package]
+name = "cursey-core"
+version = "0.1.0"
+edition = "2024"
+description = "Editor logic for cursey; has no terminal dependency"
+
+[dependencies]
+regex = "1.13.1"
+unicode-width = "0.2.2"
+
+[lints]
+workspace = true

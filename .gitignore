@@ -33,6 +33,7 @@ script.py
 *.pdb
 
 # Build directories
+/target
 build/
 cmake-build-debug/
 cmake-build-*/
