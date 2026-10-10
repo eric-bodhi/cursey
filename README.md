@@ -1,21 +1,16 @@
 # cursey
 
-A small vim-like text editor in C++20, using [notcurses](https://github.com/dankamongmen/notcurses) for the terminal.
+A small vim-like text editor in Rust, using [ratatui](https://ratatui.rs) and [crossterm](https://github.com/crossterm-rs/crossterm) for the terminal.
 
 ## Build
 
 ```sh
-brew install cmake pkg-config notcurses      # macOS
-cmake -S . -B build
-cmake --build build
-./build/cursey file.txt                      # run the editor
-./build/cursey_tests                         # run the unit tests
+cargo run -- file.txt                        # run the editor
+cargo test                                   # run the unit tests
+cargo build --release                        # optimized binary in target/release/cursey
 ```
 
-Other options:
-
-- `-DCURSEY_SANITIZE=ON` builds with AddressSanitizer and UBSan.
-- `CURSEY_LOG=/tmp/cursey.log ./build/cursey file.txt` writes debug logs to that file (see `src/utils/log.h`).
+`CURSEY_LOG=/tmp/cursey.log cargo run -- file.txt` writes debug logs to that file (see `core/src/log.rs`).
 
 ## What works
 
@@ -30,49 +25,57 @@ Other options:
 
 Every command is one undo step. Text typed in insert mode joins the command that started it, so `cwfoo<Esc>` undoes as a single step.
 
+Lines are stored as UTF-8 `String`s. A file that is not valid UTF-8 opens with the bad bytes replaced by `�` and a warning, so saving it changes those bytes.
+
 ## Layout
 
+The project is a Cargo workspace with two crates:
+
 ```
-main.cpp                 main loop: render -> read key -> editor.handle_key()
-src/core/                editor logic (no terminal code; fully unit-testable)
-  types.h                Position, Mode
-  buffer.{h,cpp}         lines of text + undo/redo; all edits go through
+src/                     the `cursey` binary: terminal front end
+  main.rs                main loop: render -> read key -> editor.handle_key()
+  tui.rs                 ratatui drawing + crossterm key input
+  lex.rs                 C/C++ syntax highlighting
+core/                    the `cursey-core` library: editor logic, no terminal
+  src/types.rs           Position, Mode
+  src/buffer.rs          lines of text + undo/redo; all edits go through
                          insert() and erase(), which record themselves
-  editor.{h,cpp}         modes, the normal-mode command parser, operators
-  motions.{h,cpp}        word motions and f/t as pure functions
-  registers.{h,cpp}      "", "0, "1-"9, "-, "a-"z, "_
-  options.{h,cpp}        :set options
-  keys.{h,cpp}           key codes + vim notation parser ("d2w", "<Esc>")
-src/commands/            ":" commands (a table: name -> handler)
-src/ui/                  notcurses front end + C/C++ syntax highlighting
-src/utils/               UTF-8 helpers, debug logger
-tests/                   unit tests (tiny built-in framework, tests/test.h)
+  src/editor.rs          modes, the normal-mode command parser, operators
+  src/motions.rs         word motions and f/t as pure functions
+  src/registers.rs       "", "0, "1-"9, "-, "a-"z, "_
+  src/options.rs         :set options
+  src/keys.rs            key codes + vim notation parser ("d2w", "<Esc>")
+  src/ex.rs              ":" commands (a table: name -> handler)
+  src/utf8.rs            UTF-8 / display-width helpers
+  src/log.rs             debug logger
+  tests/                 unit tests driving the editor with key notation
 ```
 
-The main design rule: **`Editor` never touches the terminal.** The UI sends it keys and reads back state (`cursor()`, `mode()`, `selection()`, `message()`, ...). So a feature can be tested by sending keys and checking the text:
+The main design rule: **`Editor` never touches the terminal.** The compiler enforces it: `cursey-core` does not depend on ratatui at all. The UI sends the editor keys and reads back state (`cursor()`, `mode()`, `selection()`, `message()`, ...). So a feature can be tested by sending keys and checking the text:
 
-```cpp
-TEST(editor_delete_word) {
-    CHECK_EQ(run("foo bar baz", "dw"), "bar baz");
+```rust
+#[test]
+fn editor_delete_word() {
+    assert_eq!(run("foo bar baz", "dw"), "bar baz");
 }
 ```
 
 ### How normal mode parses keys
 
-Keys collect in `m_pending`. After each key, `run_normal_command()` parses the whole sequence again from the start, following vim's grammar `["x][count]operator[count]motion`. It returns one of three results:
+Keys collect in `pending`. After each key, `run_normal_command()` parses the whole sequence again from the start, following vim's grammar `["x][count]operator[count]motion`. It returns one of three results:
 
-- **Incomplete:** wait for more keys, e.g. after `d` or `2d`.
-- **Invalid:** throw the keys away.
-- **Done:** the command ran.
+- **`Err(Incomplete)`:** wait for more keys, e.g. after `d` or `2d`.
+- **`Err(Invalid)`:** throw the keys away.
+- **`Ok(())`:** the command ran.
 
 Because it re-parses from scratch, the parser keeps no state between key presses.
 
 ### Extending it
 
-- **New motion:** add its key to `parse_motion()`. Then add a `case` in `eval_motion()` that returns a `MotionTarget` (position plus exclusive, inclusive or linewise). It then works on its own, with counts, with `d`/`c`/`y`, and in visual mode.
+- **New motion:** add its key to `parse_motion()`. Then add an arm in `eval_motion()` that returns a `MotionTarget` (position plus exclusive, inclusive or linewise). It then works on its own, with counts, with `d`/`c`/`y`, and in visual mode.
 - **New operator (e.g. `>`, `gu`):** accept it next to `d c y` in `run_normal_command()` and add a branch in `apply_operator()`.
-- **New `:` command:** write a handler in `src/commands/ex_commands.cpp` and add a row to the `commands` table.
-- **New option:** add a field to `Options` and a row to `option_defs` in `options.cpp`.
+- **New `:` command:** write a handler in `core/src/ex.rs` and add a row to the `COMMANDS` table.
+- **New option:** add a field to `Options` and a row to `OPTION_DEFS` in `core/src/options.rs`.
 
 ## Ideas for next steps
 
@@ -84,7 +87,7 @@ Roughly from easiest to hardest:
 - `%`, `{` / `}`, `*` / `#`
 - Counts for insert (`3ihi<Esc>`) and `R` replace mode
 - Command-line history and cursor movement; `:s/pat/rep/g` with ranges
-- Macros (`q`, `@`): keys are plain codepoints, so a register can hold them as UTF-8 (`key::to_text`)
-- Highlighting search matches; multi-line comment state in the highlighter
+- Macros (`q`, `@`): keys are plain `char`s, so a register can hold them as UTF-8 (`keys::to_text`)
+- Highlighting search matches; multi-line comment state in the highlighter; Rust highlighting
 - Multiple buffers / splits
 - Faster buffer for huge files (a rope or piece table behind the same `Buffer` interface)
