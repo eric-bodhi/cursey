@@ -2,8 +2,6 @@
 
 A small vim-like text editor in Rust, using [ratatui](https://ratatui.rs) and [crossterm](https://github.com/crossterm-rs/crossterm) for the terminal.
 
-The original C++20/notcurses version lives in [`legacy/`](legacy/) (build it with `cmake -S legacy -B legacy/build`).
-
 ## Build
 
 ```sh
@@ -51,7 +49,6 @@ core/                    the `cursey-core` library: editor logic, no terminal
   src/utf8.rs            UTF-8 / display-width helpers
   src/log.rs             debug logger
   tests/                 unit tests driving the editor with key notation
-legacy/                  the previous C++ implementation
 ```
 
 The main design rule: **`Editor` never touches the terminal.** The compiler enforces it: `cursey-core` does not depend on ratatui at all. The UI sends the editor keys and reads back state (`cursor()`, `mode()`, `selection()`, `message()`, ...). So a feature can be tested by sending keys and checking the text:

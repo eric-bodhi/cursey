@@ -1,77 +1,21 @@
-test.txt
-notcurses/
+# Cargo build output
+/target
 
 # All just helper files for devs
 logfile.txt
 test.txt
 script.py
 
-.cache
-*.o
-*.obj
-
-# Precompiled Headers
-*.gch
-*.pch
-
-# Compiled Static and Shared Libraries
-*.lib
-*.dll
-*.so
-*.dylib
-*.a
-*.la
-
-# Executable files
-*.exe
-*.out
-*.app
-
-# Debug files
-*.dSYM/
-*.ipdb
-*.pdb
-
-# Build directories
-/target
-build/
-cmake-build-debug/
-cmake-build-*/
-bin/
-lib/
-out/
-
-# CMake files
-CMakeFiles/
-CMakeCache.txt
-cmake_install.cmake
-Makefile
-
-# IDE specific files (e.g., Visual Studio, Code::Blocks, CLion)
-*.ide/
-*.workspace
-*.project
-*.code-workspace
-*.suo
-*.vcxproj
-*.vcxproj.filters
-*.user
+# IDE specific files
 .idea/
 *.iml
 .vscode/
-*.idx
-*.cache/
+*.code-workspace
 
 # Logs and temporary files
 *.log
 *.tmp
 *.swp
 *.swo
-
-# Git specific
-.git/
 *.orig
-
-# Other generated files
 *.bak
-*.stackdump
